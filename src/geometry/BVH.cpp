@@ -1,1 +1,0 @@
-// BVH implementation
