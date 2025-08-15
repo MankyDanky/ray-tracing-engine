@@ -1,6 +1,6 @@
 #pragma once
 #include <cmath>
-#include <iostream>
+#include <ostream>
 #include <stdexcept>
 
 class Vec3 {
