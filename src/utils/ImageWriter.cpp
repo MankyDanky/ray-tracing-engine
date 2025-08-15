@@ -1,0 +1,1 @@
+// ImageWriter implementation
