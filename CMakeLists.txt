@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add include directory
-include_directories(include)
+include_directories(src)
 
 # Add source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
