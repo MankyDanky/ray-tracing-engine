@@ -2,9 +2,12 @@
 #include "Ray.h"
 #include "Vec3.h"
 
+class Material; // Forward declaration
+
 struct HitRecord {
     Vec3 point; 
     Vec3 normal;
+    std::shared_ptr<Material> material;
     float t;
     bool frontFace;
 
