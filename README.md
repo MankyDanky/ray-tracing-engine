@@ -41,3 +41,7 @@ make
 - CMake 3.15+
 - C++17 compatible compiler
 - STB library (included)
+
+## Gallery
+
+![First image output ever!](gallery/8-16-2025-2017.png)
