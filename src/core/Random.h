@@ -1,5 +1,5 @@
 #pragma once
-#include "Vec3.h"
+#include "core/Vec3.h"
 #include <random>
 
 inline float RandomFloat() {

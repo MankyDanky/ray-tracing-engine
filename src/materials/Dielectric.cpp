@@ -1,1 +1,0 @@
-// Dielectric material implementation

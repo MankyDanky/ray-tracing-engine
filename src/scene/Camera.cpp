@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "Camera.h"
 #include <cmath>
 
@@ -39,11 +40,11 @@ Camera::Camera(
     
     // Initialize camera properties
     origin = lookFrom;
-    horizontal = viewportWidth * u;
-    vertical = viewportHeight * v;
+    horizontal = u * viewportWidth;
+    vertical = v * viewportHeight;
     lowerLeftCorner = origin - horizontal/2 - vertical/2 - w;
 }
 
 Ray Camera::GetRay(float s, float t) const {
-    return Ray(origin, lowerLeftCorner + s*horizontal + t*vertical - origin);
+    return Ray(origin, lowerLeftCorner + horizontal * s + vertical * t - origin);
 }

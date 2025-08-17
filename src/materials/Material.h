@@ -1,8 +1,6 @@
 #pragma once
-#include "Ray.h"
-
-// Forward declaration to avoid circular dependencies
-struct HitRecord;
+#include "core/Ray.h"
+#include "geometry/Hittable.h"
 
 class Material {
 public:

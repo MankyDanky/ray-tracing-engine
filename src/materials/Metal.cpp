@@ -1,1 +1,0 @@
-// Metal material implementation

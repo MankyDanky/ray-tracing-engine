@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "Hittable.h"
+#include "geometry/Hittable.h"
 
 class Scene : public Hittable {
 private:

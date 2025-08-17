@@ -1,6 +1,6 @@
 #pragma once
-#include "Ray.h"
-#include "Vec3.h"
+#include "core/Ray.h"
+#include "core/Vec3.h"
 
 class Material; // Forward declaration
 
@@ -13,7 +13,7 @@ struct HitRecord {
 
     void SetFaceNormal(const Ray& ray, const Vec3& outwardNormal) {
         frontFace = ray.direction.Dot(outwardNormal) < 0;
-        normal = frontFace ? outwardNormal : -outwardNormal;
+        normal = frontFace ? outwardNormal : outwardNormal * -1;
     }
 };
 

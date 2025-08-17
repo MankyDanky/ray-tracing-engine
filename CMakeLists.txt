@@ -5,7 +5,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add include directory
-include_directories(src)
+include_directories(
+    src
+    src/core
+    src/geometry
+    src/scene
+    src/renderer
+    src/materials
+    src/utils
+)
 
 # Add source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")

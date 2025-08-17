@@ -1,6 +1,6 @@
 #pragma once
-
-#include "Material.h"
+#include "materials/Material.h"
+#include "core/Random.h"
 
 class Lambertian : public Material {
 public:
