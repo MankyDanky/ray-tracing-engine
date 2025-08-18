@@ -2,6 +2,7 @@
 #include "geometry/Hittable.h"
 
 class Plane : public Hittable {
+public:
     Vec3 center;
     float width;
     float height;

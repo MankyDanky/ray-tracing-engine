@@ -2,6 +2,7 @@
 #include "core/Ray.h"
 #include "scene/Scene.h"
 #include "geometry/Sphere.h"
+#include "geometry/Plane.h"
 #include "scene/Camera.h"
 #include "renderer/Renderer.h"
 #include "utils/Image.h"
@@ -24,9 +25,9 @@ int main() {
     // Create the scene with spheres
     Scene scene;
     
-    // Add a ground sphere (large sphere below to act as ground)
+    // Add a ground plane (large plane below to act as ground)
     auto groundMaterial = std::make_shared<Lambertian>(Vec3(0.8f, 0.8f, 0.0f));
-    scene.Add(std::make_shared<Sphere>(Vec3(0, -100.5, -1), 100, groundMaterial));
+    scene.Add(std::make_shared<Plane>(Vec3(0, -100.5, -1), 100, 100, groundMaterial));
     
     // Add a main sphere
     auto centerMaterial = std::make_shared<Lambertian>(Vec3(0.7f, 0.3f, 0.3f));
