@@ -27,7 +27,7 @@ int main() {
     
     // Add a ground plane (large plane below to act as ground)
     auto groundMaterial = std::make_shared<Lambertian>(Vec3(0.8f, 0.8f, 0.0f));
-    scene.Add(std::make_shared<Plane>(Vec3(0, -100.5, -1), 100, 100, groundMaterial));
+    scene.Add(std::make_shared<Plane>(Vec3(0, -0.5, -1), 2, 2, groundMaterial));
     
     // Add a main sphere
     auto centerMaterial = std::make_shared<Lambertian>(Vec3(0.7f, 0.3f, 0.3f));
