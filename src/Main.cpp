@@ -9,8 +9,9 @@
 #include "core/Random.h"
 #include <iostream>
 #include <memory>
+#include <SDL3/SDL.h>
 
-int main() {
+int main() { 
     // Image dimensions
     const int imageWidth = 400;  // Keep small for faster rendering
     const int imageHeight = 225;  // 16:9 aspect ratio
@@ -72,5 +73,51 @@ int main() {
         std::cerr << "Failed to save image" << std::endl;
     }
     
+    if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
+        SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
+        return 0;
+    }
+
+    SDL_Window* sdlWindow = SDL_CreateWindow("Path Tracing Renderer", 800, 450, SDL_WINDOW_RESIZABLE);
+
+    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(sdlWindow, nullptr);
+
+    SDL_Texture* sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, imageWidth, imageHeight);
+
+    bool isRunning = true;
+
+    std::vector<uint32_t> cpuFB(imageWidth * imageHeight);
+    for (int y = 0; y < imageHeight; y++) {
+        for (int x = 0; x < imageWidth; x++) {
+            Vec3 color = image.pixels[y * imageWidth + x];
+            cpuFB[y * imageWidth + x] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
+                nullptr,
+                static_cast<uint8_t>(color.x * 255),
+                static_cast<uint8_t>(color.y * 255),
+                static_cast<uint8_t>(color.z * 255),
+                255);
+        }
+    }
+    SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
+
+    while (isRunning) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                isRunning = false;
+            }
+        }
+
+        SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+        SDL_RenderClear(sdlRenderer);
+        SDL_RenderTexture(sdlRenderer, sdlTexture, nullptr, nullptr);
+        SDL_RenderPresent(sdlRenderer);
+    }
+
+    SDL_DestroyTexture(sdlTexture);
+    SDL_DestroyRenderer(sdlRenderer);
+    SDL_DestroyWindow(sdlWindow);
+    SDL_Quit();
+
     return 0;
 }

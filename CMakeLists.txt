@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(PathTracingRenderer)
 
+# Add SDL3 as a subdirectory
+add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -30,4 +33,14 @@ endif()
 
 # Enable threading support
 find_package(Threads REQUIRED)
-target_link_libraries(PathTracingRenderer Threads::Threads)
+target_link_libraries(PathTracingRenderer PRIVATE Threads::Threads)
+target_link_libraries(PathTracingRenderer PRIVATE SDL3::SDL3)
+
+# Copy SDL3.dll to the output directory
+if(WIN32)
+    add_custom_command(TARGET PathTracingRenderer POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:SDL3::SDL3>
+        $<TARGET_FILE_DIR:PathTracingRenderer>
+    )
+endif()
