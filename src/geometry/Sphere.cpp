@@ -3,10 +3,10 @@
 
 bool Sphere::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const {
     // Calculate coefficients for the quadratic equation
-    Vec3 oc = ray.origin - center;
+    Vec3 oc = ray.origin;
     float a = ray.direction.LengthSquared();
     float half_b = oc.Dot(ray.direction);
-    float c = oc.LengthSquared() - radius * radius;
+    float c = oc.LengthSquared() - 1;
     
     // Calculate discriminant
     float discriminant = half_b * half_b - a * c;
@@ -29,7 +29,7 @@ bool Sphere::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) cons
     // Record the hit information
     record.t = root;
     record.point = ray.At(record.t);
-    Vec3 outward_normal = (record.point - center) / radius;
+    Vec3 outward_normal = record.point;
     record.SetFaceNormal(ray, outward_normal);
     record.material = material;
     

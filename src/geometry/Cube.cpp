@@ -1,7 +1,7 @@
-#include "geometry/Box.h"
+#include "geometry/Cube.h"
 #include <limits>
 
-bool Box::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const {
+bool Cube::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const {
     Vec3 lowerBound = Vec3(-0.5, -0.5, -0.5);
     Vec3 upperBound = Vec3(0.5, 0.5, 0.5);
 
