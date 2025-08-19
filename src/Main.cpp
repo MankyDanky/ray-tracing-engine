@@ -27,34 +27,40 @@ int main() {
     // Create the scene with spheres
     Scene scene;
     
-    // Add a ground plane (large plane below to act as ground)
     auto groundMaterial = std::make_shared<Lambertian>(Vec3(0.8f, 0.8f, 0.0f));
-    //scene.Add(std::make_shared<Plane>(Vec3(0, -0.5, -1), 2, 2, groundMaterial));
-    
-
     auto centerMaterial = std::make_shared<Lambertian>(Vec3(0.7f, 0.3f, 0.3f));
 
-    auto sphere = std::make_shared<Sphere>(Vec3(0, 0, 0), 1.0f, centerMaterial);
-    auto transformedSphere = std::make_shared<Transform>(sphere);
-    transformedSphere->SetPosition(Vec3(1, 0, -1.0f)); 
-    transformedSphere->SetScale(Vec3(0.1f, 0.5f, 0.1f));
-
+    
     auto cube = std::make_shared<Box>(Vec3(0, 0, 0), Vec3(1, 1, 1), centerMaterial);
     auto transformedCube = std::make_shared<Transform>(cube);
     transformedCube->SetPosition(Vec3(0, 0, -1));
-    transformedCube->SetRotation(Vec3(0, 90, 0));
+    transformedCube->SetRotation(Vec3(0, 0, 0));
     transformedCube->SetScale(Vec3(0.5f, 0.5f, 0.5f));
 
+    auto cube2 = std::make_shared<Box>(Vec3(0, 0, 0), Vec3(1, 1, 1), groundMaterial);
+    auto transformedCube2 = std::make_shared<Transform>(cube2);
+    transformedCube2->SetPosition(Vec3(0, 0, -5));
+    transformedCube2->SetRotation(Vec3(0, 0, 0));
+    transformedCube2->SetScale(Vec3(5.0f, 5.0f, 1.0f));
+
+    auto cube3 = std::make_shared<Box>(Vec3(0, 0, 0), Vec3(1, 1, 1), groundMaterial);
+    auto transformedCube3 = std::make_shared<Transform>(cube3);
+    transformedCube3->SetPosition(Vec3(1.2, 0, -1));
+    transformedCube3->SetRotation(Vec3(0, 0, 0));
+    transformedCube3->SetScale(Vec3(1.0f, 5.0f, 5.0f));
+    /*
     auto plane = std::make_shared<Plane>(Vec3(0, 0, 0), 1, 1, groundMaterial);
     auto transformedPlane = std::make_shared<Transform>(plane);
-    transformedPlane->SetPosition(Vec3(0, -0.1, -1));
-    transformedPlane->SetRotation(Vec3(90, 0, 0));
-    transformedPlane->SetScale(Vec3(3, 3, 3));
+    transformedPlane->SetPosition(Vec3(0.3, -0.1, -1));
+    transformedPlane->SetRotation(Vec3(0, 0, 90));
+    transformedPlane->SetScale(Vec3(3, 3, 3));*/
 
     // Add the transformed sphere to the scene
-    scene.Add(transformedSphere);
+    //scene.Add(transformedSphere);
     scene.Add(transformedCube);
-    scene.Add(transformedPlane);
+    //scene.Add(transformedPlane);
+    scene.Add(transformedCube2);
+    scene.Add(transformedCube3);
     // Create camera
     Camera camera;
     

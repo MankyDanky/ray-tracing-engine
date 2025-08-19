@@ -51,6 +51,6 @@ bool Transform::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) c
     // Transform the hit record back to world space
     record.point = transformMatrix.TransformPoint(record.point);
     record.normal = inverseMatrix.Transpose().TransformDirection(record.normal).Normalize();
-
+    record.t = (record.point - ray.origin).Length();
     return true;
 }
