@@ -5,6 +5,7 @@
 #include "geometry/Plane.h"
 #include "geometry/Box.h"
 #include "scene/Camera.h"
+#include "geometry/Transform.h"
 #include "renderer/Renderer.h"
 #include "utils/Image.h"
 #include "materials/Lambertian.h"
@@ -32,10 +33,17 @@ int main() {
     
     // Add a main sphere
     auto centerMaterial = std::make_shared<Lambertian>(Vec3(0.7f, 0.3f, 0.3f));
-    scene.Add(std::make_shared<Sphere>(Vec3(0, 0, -1), 0.5f, centerMaterial));
+    auto sphere = std::make_shared<Sphere>(Vec3(0, 0, 0), 1.0f, centerMaterial);
 
-    scene.Add(std::make_shared<Box>(Vec3(1, 0, -1), Vec3(0.2f, 0.2f, 0.2f), centerMaterial));
+    // Create a transform that wraps the sphere
+    auto transformedSphere = std::make_shared<Transform>(sphere);
 
+    // Set position, rotation, and scale
+    transformedSphere->SetPosition(Vec3(0, 0, -0.15f));  // Move to (0,0,-1)
+    transformedSphere->SetScale(Vec3(0.1f, 0.1f, 0.1f));
+
+    // Add the transformed sphere to the scene
+    scene.Add(transformedSphere);
     // Create camera
     Camera camera;
     
