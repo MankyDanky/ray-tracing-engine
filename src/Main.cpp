@@ -31,19 +31,19 @@ int main() {
     auto centerMaterial = std::make_shared<Lambertian>(Vec3(0.7f, 0.3f, 0.3f));
 
     
-    auto cube = std::make_shared<Box>(Vec3(0, 0, 0), Vec3(1, 1, 1), centerMaterial);
+    auto cube = std::make_shared<Box>(centerMaterial);
     auto transformedCube = std::make_shared<Transform>(cube);
     transformedCube->SetPosition(Vec3(0, 0, -1));
     transformedCube->SetRotation(Vec3(0, 0, 0));
     transformedCube->SetScale(Vec3(0.5f, 0.5f, 0.5f));
 
-    auto cube2 = std::make_shared<Box>(Vec3(0, 0, 0), Vec3(1, 1, 1), groundMaterial);
+    auto cube2 = std::make_shared<Box>(groundMaterial);
     auto transformedCube2 = std::make_shared<Transform>(cube2);
     transformedCube2->SetPosition(Vec3(0, 0, -5));
     transformedCube2->SetRotation(Vec3(0, 0, 0));
     transformedCube2->SetScale(Vec3(5.0f, 5.0f, 1.0f));
 
-    auto cube3 = std::make_shared<Box>(Vec3(0, 0, 0), Vec3(1, 1, 1), groundMaterial);
+    auto cube3 = std::make_shared<Box>(groundMaterial);
     auto transformedCube3 = std::make_shared<Transform>(cube3);
     transformedCube3->SetPosition(Vec3(1.2, 0, -1));
     transformedCube3->SetRotation(Vec3(0, 0, 0));

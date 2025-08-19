@@ -2,9 +2,9 @@
 #include <limits>
 
 bool Box::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const {
-    Vec3 lowerBound = center - size / 2;
-    Vec3 upperBound = center + size / 2;
-    
+    Vec3 lowerBound = Vec3(-0.5, -0.5, -0.5);
+    Vec3 upperBound = Vec3(0.5, 0.5, 0.5);
+
     float tLowX = -std::numeric_limits<float>::infinity();
     float tHighX = std::numeric_limits<float>::infinity();
     float tLowY = -std::numeric_limits<float>::infinity();
