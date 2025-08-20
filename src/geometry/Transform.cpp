@@ -42,15 +42,27 @@ bool Transform::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) c
     // Transform the ray into the local space of the object
     Vec3 transformedOrigin = inverseMatrix.TransformPoint(ray.origin);
     Vec3 transformedDirection = inverseMatrix.TransformDirection(ray.direction);
+    
+    // Store the length before normalizing
+    float dirLength = transformedDirection.Length();
+    transformedDirection = transformedDirection.Normalize();
+    
     Ray transformedRay(transformedOrigin, transformedDirection);
 
-    if (!object->Hit(transformedRay, tMin, tMax, record)) {
+    // Adjust tMin and tMax to account for scaling
+    float adjustedTMin = tMin * dirLength;
+    float adjustedTMax = tMax * dirLength;
+
+    if (!object->Hit(transformedRay, adjustedTMin, adjustedTMax, record)) {
         return false;
     }
-
+    
     // Transform the hit record back to world space
     record.point = transformMatrix.TransformPoint(record.point);
     record.normal = inverseMatrix.Transpose().TransformDirection(record.normal).Normalize();
+    
+    // Double-check the t value with projection
     record.t = (record.point - ray.origin).Length();
+    
     return true;
 }

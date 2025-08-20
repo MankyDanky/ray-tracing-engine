@@ -21,8 +21,8 @@ bool Plane::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const
     Vec3 hitPoint = ray.At(t);
     
     // Check if the hit point is within the plane's bounds
-    if (hitPoint.x < -0.5 || hitPoint.x > 0.5 ||
-        hitPoint.z < -0.5 || hitPoint.z > 0.5) {
+    if (hitPoint.x < -1 || hitPoint.x > 1 ||
+        hitPoint.z < -1 || hitPoint.z > 1) {
         return false;
     }
     

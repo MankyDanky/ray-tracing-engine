@@ -38,13 +38,18 @@ int main() {
 
     auto cube = std::make_shared<Cube>(centerMaterial);
     auto transformedCube = std::make_shared<Transform>(cube);
-    transformedCube->SetPosition(Vec3(0, 0, -1));
-    transformedCube->SetRotation(Vec3(0, 0, 0));
+    transformedCube->SetPosition(Vec3(1.25f, -0.5, -2));
+    transformedCube->SetRotation(Vec3(0, 45, 45));
     transformedCube->SetScale(Vec3(0.5f, 0.5f, 0.5f));
 
+    auto plane = std::make_shared<Plane>(groundMaterial);
+    auto transformedPlane = std::make_shared<Transform>(plane);
+    transformedPlane->SetPosition(Vec3(0, -0.5, -2));
+    transformedPlane->SetRotation(Vec3(0, 0, 0));
+    transformedPlane->SetScale(Vec3(1, 1, 1));
     auto cube2 = std::make_shared<Cube>(groundMaterial);
     auto transformedCube2 = std::make_shared<Transform>(cube2);
-    transformedCube2->SetPosition(Vec3(0, 0, -5));
+    transformedCube2->SetPosition(Vec3(0, -0.5, -3));
     transformedCube2->SetRotation(Vec3(0, 0, 0));
     transformedCube2->SetScale(Vec3(5.0f, 5.0f, 1.0f));
 
@@ -62,10 +67,9 @@ int main() {
 
     // Add the transformed sphere to the scene
     //scene.Add(transformedSphere);
-    scene.Add(transformedSphere);
-    //scene.Add(transformedPlane);
-    scene.Add(transformedCube2);
-    scene.Add(transformedCube3);
+    scene.Add(transformedPlane);
+    //scene.Add(transformedCube2);
+    scene.Add(transformedCube);
     // Create camera
     Camera camera;
     
