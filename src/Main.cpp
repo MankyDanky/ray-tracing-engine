@@ -30,6 +30,7 @@ int main() {
     
     auto groundMaterial = std::make_shared<Lambertian>(Vec3(0.8f, 0.8f, 0.0f));
     auto centerMaterial = std::make_shared<Lambertian>(Vec3(0.7f, 0.3f, 0.3f));
+    auto cylinderMaterial = std::make_shared<Lambertian>(Vec3(0.3f, 0.7f, 0.3f));
 
     auto sphere = std::make_shared<Sphere>(centerMaterial);
     auto transformedSphere = std::make_shared<Transform>(sphere);
@@ -39,32 +40,32 @@ int main() {
 
     auto cube = std::make_shared<Cube>(centerMaterial);
     auto transformedCube = std::make_shared<Transform>(cube);
-    transformedCube->SetPosition(Vec3(1.25f, -0.5, -2));
+    transformedCube->SetPosition(Vec3(1.25f, -0.5f, -2));
     transformedCube->SetRotation(Vec3(0, 45, 45));
     transformedCube->SetScale(Vec3(0.5f, 0.5f, 0.5f));
 
     auto plane = std::make_shared<Plane>(groundMaterial);
     auto transformedPlane = std::make_shared<Transform>(plane);
-    transformedPlane->SetPosition(Vec3(0, -0.5, -2));
+    transformedPlane->SetPosition(Vec3(0, -0.5f, -2));
     transformedPlane->SetRotation(Vec3(0, 0, 0));
     transformedPlane->SetScale(Vec3(1, 1, 1));
     auto cube2 = std::make_shared<Cube>(groundMaterial);
     auto transformedCube2 = std::make_shared<Transform>(cube2);
-    transformedCube2->SetPosition(Vec3(0, -0.5, -3));
+    transformedCube2->SetPosition(Vec3(0, -0.5f, -3));
     transformedCube2->SetRotation(Vec3(0, 0, 0));
     transformedCube2->SetScale(Vec3(5.0f, 5.0f, 1.0f));
 
     auto cube3 = std::make_shared<Cube>(groundMaterial);
     auto transformedCube3 = std::make_shared<Transform>(cube3);
-    transformedCube3->SetPosition(Vec3(1.2, 0, -1));
+    transformedCube3->SetPosition(Vec3(1.2f, 0, -1));
     transformedCube3->SetRotation(Vec3(0, 0, 0));
     transformedCube3->SetScale(Vec3(1.0f, 5.0f, 5.0f));
 
-    auto cylinder = std::make_shared<Cylinder>(groundMaterial);
+    auto cylinder = std::make_shared<Cylinder>(cylinderMaterial);
     auto transformedCylinder = std::make_shared<Transform>(cylinder);
-    transformedCylinder->SetPosition(Vec3(0, 0, -2));
+    transformedCylinder->SetPosition(Vec3(0, -0.75f, -2.0f));
     transformedCylinder->SetRotation(Vec3(0, 0, 0));
-    transformedCylinder->SetScale(Vec3(0.5f, 1.0f, 0.5f));
+    transformedCylinder->SetScale(Vec3(0.5f, 0.5f, 0.5f));
     /*
     auto plane = std::make_shared<Plane>(Vec3(0, 0, 0), 1, 1, groundMaterial);
     auto transformedPlane = std::make_shared<Transform>(plane);

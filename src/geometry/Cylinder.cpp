@@ -22,7 +22,7 @@ bool Cylinder::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) co
             float t2 = (-b + sqrtd) / (2.0f * a);
 
             for (float t : {t1, t2}) {
-                if (t < tMin || t > tMax) continue;
+                if (t < tMin || t > closestT) continue;
 
                 Vec3 hitPoint = ray.At(t);
 
@@ -47,7 +47,7 @@ bool Cylinder::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) co
     if (std::abs(direction.y) > 1e-8) {
         float t = (1.0f - origin.y) / direction.y;
 
-        if (t >= tMin && t <= closestT) {
+        if (t >= tMin && t < closestT) {
             Vec3 hitPoint = ray.At(t);
 
             float x2z2 = hitPoint.x * hitPoint.x + hitPoint.z * hitPoint.z;
