@@ -10,6 +10,7 @@
 #include "renderer/Renderer.h"
 #include "utils/Image.h"
 #include "materials/Lambertian.h"
+#include "materials/Metal.h"
 #include "core/Random.h"
 #include <iostream>
 #include <memory>
