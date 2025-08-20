@@ -31,7 +31,7 @@ int main() {
     
     auto groundMaterial = std::make_shared<Lambertian>(Vec3(0.8f, 0.8f, 0.0f));
     auto centerMaterial = std::make_shared<Lambertian>(Vec3(0.7f, 0.3f, 0.3f));
-    auto cylinderMaterial = std::make_shared<Lambertian>(Vec3(0.3f, 0.7f, 0.3f));
+    auto cylinderMaterial = std::make_shared<Metal>(Vec3(0.3f, 0.7f, 0.3f));
 
     auto sphere = std::make_shared<Sphere>(centerMaterial);
     auto transformedSphere = std::make_shared<Transform>(sphere);
