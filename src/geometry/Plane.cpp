@@ -10,8 +10,8 @@ bool Plane::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const
     }
     
     // Calculate the distance from the ray origin to the plane
-    float t = (center.y - ray.origin.y) / denominator;
-    
+    float t = (-ray.origin.y) / denominator;
+
     // Check if the intersection point is within the valid range
     if (t < tMin || t > tMax) {
         return false;
@@ -21,8 +21,8 @@ bool Plane::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const
     Vec3 hitPoint = ray.At(t);
     
     // Check if the hit point is within the plane's bounds
-    if (hitPoint.x < center.x - width / 2 || hitPoint.x > center.x + width / 2 ||
-        hitPoint.z < center.z - height / 2 || hitPoint.z > center.z + height / 2) {
+    if (hitPoint.x < -0.5 || hitPoint.x > 0.5 ||
+        hitPoint.z < -0.5 || hitPoint.z > 0.5) {
         return false;
     }
     
