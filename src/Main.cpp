@@ -3,6 +3,7 @@
 #include "scene/Scene.h"
 #include "geometry/Sphere.h"
 #include "geometry/Plane.h"
+#include "geometry/Cylinder.h"
 #include "geometry/Cube.h"
 #include "scene/Camera.h"
 #include "geometry/Transform.h"
@@ -58,6 +59,12 @@ int main() {
     transformedCube3->SetPosition(Vec3(1.2, 0, -1));
     transformedCube3->SetRotation(Vec3(0, 0, 0));
     transformedCube3->SetScale(Vec3(1.0f, 5.0f, 5.0f));
+
+    auto cylinder = std::make_shared<Cylinder>(groundMaterial);
+    auto transformedCylinder = std::make_shared<Transform>(cylinder);
+    transformedCylinder->SetPosition(Vec3(0, 0, -2));
+    transformedCylinder->SetRotation(Vec3(0, 0, 0));
+    transformedCylinder->SetScale(Vec3(0.5f, 1.0f, 0.5f));
     /*
     auto plane = std::make_shared<Plane>(Vec3(0, 0, 0), 1, 1, groundMaterial);
     auto transformedPlane = std::make_shared<Transform>(plane);
@@ -70,6 +77,7 @@ int main() {
     scene.Add(transformedPlane);
     //scene.Add(transformedCube2);
     scene.Add(transformedCube);
+    scene.Add(transformedCylinder);
     // Create camera
     Camera camera;
     
