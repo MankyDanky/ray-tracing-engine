@@ -8,7 +8,7 @@ bool Metal::Scatter(
     Vec3& attenuation,
     Ray& scattered
 ) const {
-    Vec3 reflected = Vec3::Reflect(rayIn.direction.Normalize(), rec.normal);
+    Vec3 reflected = rayIn.direction.Reflect(rec.normal);
     scattered = Ray(rec.point, reflected);
     attenuation = albedo;
     return (reflected.Dot(rec.normal) > 0);

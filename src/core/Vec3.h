@@ -34,6 +34,11 @@ public:
         return *this / length;
     }
 
+    Vec3 Reflect(const Vec3& normal) const {
+        return *this - normal * (2 * Dot(normal));
+    }
+
+
     // Operators
     Vec3 operator+(const Vec3& other) const {
         return Vec3(x + other.x, y + other.y, z + other.z);
@@ -81,10 +86,7 @@ public:
     static Vec3 Lerp(const Vec3& a, const Vec3& b, float t) {
         return a * (1 - t) + b * t;
     }
-    static Vec3 Reflect(const Vec3& v, const Vec3& normal) {
-        return v - normal * (2 * v.Dot(normal));
-    }
-
+    
     // Debugging
     friend std::ostream& operator<<(std::ostream& os, const Vec3& v) {
         os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
