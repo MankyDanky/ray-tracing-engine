@@ -69,7 +69,7 @@ int main() {
     transformedCylinder->SetRotation(Vec3(0, 0, 0));
     transformedCylinder->SetScale(Vec3(0.5f, 0.5f, 0.5f));
 
-    auto customMeshMaterial = std::make_shared<Lambertian>(Vec3(0.5f, 0.5f, 0.9f));
+    auto customMeshMaterial = std::make_shared<Metal>(Vec3(0.5f, 0.5f, 0.9f));
     auto customMesh = std::make_shared<Mesh>(customMeshMaterial);
     if (customMesh->LoadFromOBJ("models/monkey.obj")) {
         auto transformedMesh = std::make_shared<Transform>(customMesh);
@@ -88,7 +88,7 @@ int main() {
 
     // Add the transformed sphere to the scene
     //scene.Add(transformedSphere);
-    scene.Add(transformedPlane);
+    //scene.Add(transformedPlane);
     //scene.Add(transformedCube2);
     scene.Add(transformedCube);
     //scene.Add(transformedCylinder);
