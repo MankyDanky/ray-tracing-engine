@@ -49,5 +49,5 @@ endif()
 add_custom_command(TARGET PathTracingRenderer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/src/models
-    $<TARGET_FILE_DIR:PathTracingRenderer>/models
+    $<TARGET_FILE_DIR:PathTracingRenderer>/../models
 )

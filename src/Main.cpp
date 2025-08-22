@@ -5,6 +5,7 @@
 #include "geometry/Plane.h"
 #include "geometry/Cylinder.h"
 #include "geometry/Cube.h"
+#include "geometry/Mesh.h"
 #include "scene/Camera.h"
 #include "geometry/Transform.h"
 #include "renderer/Renderer.h"
@@ -67,6 +68,17 @@ int main() {
     transformedCylinder->SetPosition(Vec3(0, -0.75f, -2.0f));
     transformedCylinder->SetRotation(Vec3(0, 0, 0));
     transformedCylinder->SetScale(Vec3(0.5f, 0.5f, 0.5f));
+
+    auto customMeshMaterial = std::make_shared<Lambertian>(Vec3(0.5f, 0.5f, 0.9f));
+    auto customMesh = std::make_shared<Mesh>(customMeshMaterial);
+    if (customMesh->LoadFromOBJ("models/monkey.obj")) {
+        auto transformedMesh = std::make_shared<Transform>(customMesh);
+        transformedMesh->SetPosition(Vec3(0, -0.75, -2));
+        transformedMesh->SetRotation(Vec3(0, 30, 0));
+        transformedMesh->SetScale(Vec3(0.5f, 0.5f, 0.5f));
+        scene.Add(transformedMesh);
+    }
+
     /*
     auto plane = std::make_shared<Plane>(Vec3(0, 0, 0), 1, 1, groundMaterial);
     auto transformedPlane = std::make_shared<Transform>(plane);
@@ -79,7 +91,8 @@ int main() {
     scene.Add(transformedPlane);
     //scene.Add(transformedCube2);
     scene.Add(transformedCube);
-    scene.Add(transformedCylinder);
+    //scene.Add(transformedCylinder);
+    
     // Create camera
     Camera camera;
     

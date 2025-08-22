@@ -2,8 +2,10 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
 
 bool Mesh::LoadFromOBJ(const std::string& filename) {
+    std::cout << "Current directory: " << std::filesystem::current_path() << std::endl;
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Error: Could not open OBJ file: " << filename << std::endl;
