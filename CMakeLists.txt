@@ -44,3 +44,10 @@ if(WIN32)
         $<TARGET_FILE_DIR:PathTracingRenderer>
     )
 endif()
+
+# Copy model files to the output directory
+add_custom_command(TARGET PathTracingRenderer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/src/models
+    $<TARGET_FILE_DIR:PathTracingRenderer>/models
+)
