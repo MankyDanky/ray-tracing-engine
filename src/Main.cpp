@@ -169,13 +169,13 @@ int main() {
                 isRunning = false;
             }
         }
-        
-        for (int j = imageHeight-1; j >= 0; --j) {
-            for (int i = 0; i < imageWidth; ++i) {
+
+        for (int j = 0; j < imageHeight; j++) {
+            for (int i = 0; i < imageWidth; i++) {
                 Vec3 pixelColor(0, 0, 0);
                 
                 // Sample multiple rays per pixel for anti-aliasing
-                for (int s = 0; s < samplesPerPixel; ++s) {
+                for (int s = 0; s < samplesPerPixel; s++) {
                     float u = float(i + RandomFloat()) / float(imageWidth-1);
                     float v = float(j + RandomFloat()) / float(imageHeight-1);
                     
@@ -185,12 +185,12 @@ int main() {
                 
                 // Average the color over all samples
                 pixelColor /= float(samplesPerPixel);
-                cpuFB[j * imageWidth + i] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
+                cpuFB[(imageHeight - j - 1) * imageWidth + i] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
                     nullptr,
                     static_cast<uint8_t>(pixelColor.x * 255),
                     static_cast<uint8_t>(pixelColor.y * 255),
                     static_cast<uint8_t>(pixelColor.z * 255),
-                    255); 
+                    255);
             }
         }
         std::cout << "Rendered" << std::endl;
