@@ -16,7 +16,11 @@ public:
             float invD = 1.0f / ray.direction[a];
             float t0 = (min[a] - ray.origin[a]) * invD;
             float t1 = (max[a] - ray.origin[a]) * invD;
-            if (invD < 0.0f) std::swap(t0, t1);
+            if (invD < 0.0f) {
+                float temp = t0;
+                t0 = t1;
+                t1 = temp;
+            }
             tMin = t0 > tMin ? t0 : tMin;
             tMax = t1 < tMax ? t1 : tMax;
             if (tMax <= tMin) return false;

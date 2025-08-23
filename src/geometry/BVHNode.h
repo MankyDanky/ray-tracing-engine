@@ -17,10 +17,39 @@ public:
     BVHNode(const std::vector<std::shared_ptr<Hittable>>& objects, size_t start, size_t end) {
         auto objectList = objects;
 
-        int axis = RandomInt(0, 2);
+        AABB centroidBounds;
+        for (size_t i = start; i < end; i++) {
+            AABB box;
+            if (!objectList[i]->BoundingBox(box)) continue;
+            
+            Vec3 centroid = (box.min + box.max) * 0.5f;
+            if (i == start) {
+                centroidBounds = AABB(centroid, centroid);
+            } else {
+                centroidBounds = AABB(
+                    Vec3(
+                        std::min(centroidBounds.min.x, centroid.x),
+                        std::min(centroidBounds.min.y, centroid.y),
+                        std::min(centroidBounds.min.z, centroid.z)
+                    ),
+                    Vec3(
+                        std::max(centroidBounds.max.x, centroid.x),
+                        std::max(centroidBounds.max.y, centroid.y),
+                        std::max(centroidBounds.max.z, centroid.z)
+                    )
+                );
+            }
+        }
+        
+        Vec3 extent = centroidBounds.max - centroidBounds.min;
+        int axis = 0;
+        if (extent.y > extent.x) axis = 1;
+        if (extent.z > extent[axis]) axis = 2;
+
+        // Rest of your code remains similar
         auto comparator = (axis == 0) ? BoxXCompare
                         : (axis == 1) ? BoxYCompare
-                                      : BoxZCompare;
+                                    : BoxZCompare;
 
         size_t objectSpan = end - start;
 
