@@ -75,6 +75,11 @@ public:
         return *this;
     }
 
+    float operator[](int index) const {
+        if (index < 0 || index > 2) throw std::out_of_range("Index out of range");
+        return index == 0 ? x : (index == 1 ? y : z);
+    }
+
     // Utility Methods
     Vec3 Clamp(float minVal, float maxVal) const {
         return Vec3(
