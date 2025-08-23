@@ -34,4 +34,6 @@ public:
     Vec3 GetScale() const { return scale; }
 
     virtual bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const override;
+
+    virtual bool BoundingBox(AABB& outputBox) const override;
 };

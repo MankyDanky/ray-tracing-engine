@@ -76,7 +76,7 @@ int main() {
         transformedMesh->SetPosition(Vec3(0, -0.75, -2));
         transformedMesh->SetRotation(Vec3(0, 30, 0));
         transformedMesh->SetScale(Vec3(0.5f, 0.5f, 0.5f));
-        //scene.Add(transformedMesh);
+        scene.Add(transformedMesh);
     }
 
     /*
@@ -91,6 +91,7 @@ int main() {
     //scene.Add(transformedPlane);
     //scene.Add(transformedCube2);
     scene.Add(transformedCube);
+    scene.BuildBVH();
     //scene.Add(transformedCylinder);
     
     // Create camera
@@ -168,6 +169,7 @@ int main() {
                 isRunning = false;
             }
         }
+        /*
         for (int j = imageHeight-1; j >= 0; --j) {
             for (int i = 0; i < imageWidth; ++i) {
                 Vec3 pixelColor(0, 0, 0);
@@ -190,7 +192,7 @@ int main() {
                     static_cast<uint8_t>(pixelColor.z * 255),
                     255); 
             }
-        }
+        }*/
         std::cout << "Rendered" << std::endl;
         SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);

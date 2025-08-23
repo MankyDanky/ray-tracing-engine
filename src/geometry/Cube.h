@@ -11,4 +11,6 @@ public:
         : material(material) {}
 
     virtual bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const override;
+
+    virtual bool BoundingBox(AABB& outputBox) const override;
 };

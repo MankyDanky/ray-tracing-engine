@@ -66,3 +66,48 @@ bool Transform::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) c
     
     return true;
 }
+
+bool Transform::BoundingBox(AABB& outputBox) const {
+    if (boundingBoxCached) {
+        outputBox = boundingBox;
+        return true;
+    }
+
+    if (!object->BoundingBox(outputBox)) {
+        return false;
+    }
+
+    UpdateMatrices();
+
+    // Transform all 8 corners of the bounding box
+    Vec3 corners[8] = {
+        Vec3(outputBox.min.x, outputBox.min.y, outputBox.min.z),
+        Vec3(outputBox.min.x, outputBox.min.y, outputBox.max.z),
+        Vec3(outputBox.min.x, outputBox.max.y, outputBox.min.z),
+        Vec3(outputBox.min.x, outputBox.max.y, outputBox.max.z),
+        Vec3(outputBox.max.x, outputBox.min.y, outputBox.min.z),
+        Vec3(outputBox.max.x, outputBox.min.y, outputBox.max.z),
+        Vec3(outputBox.max.x, outputBox.max.y, outputBox.min.z),
+        Vec3(outputBox.max.x, outputBox.max.y, outputBox.max.z)
+    };
+
+    Vec3 newMin(FLT_MAX, FLT_MAX, FLT_MAX);
+    Vec3 newMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+    for (const auto& corner : corners) {
+        Vec3 transformedCorner = transformMatrix.TransformPoint(corner);
+        newMin.x = std::min(newMin.x, transformedCorner.x);
+        newMin.y = std::min(newMin.y, transformedCorner.y);
+        newMin.z = std::min(newMin.z, transformedCorner.z);
+        
+        newMax.x = std::max(newMax.x, transformedCorner.x);
+        newMax.y = std::max(newMax.y, transformedCorner.y);
+        newMax.z = std::max(newMax.z, transformedCorner.z);
+    }
+
+    outputBox = AABB(newMin, newMax);
+    boundingBox = outputBox;
+    boundingBoxCached = true;
+
+    return true;
+}

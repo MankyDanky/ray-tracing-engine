@@ -56,3 +56,34 @@ bool Mesh::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const 
 
     return hitAnything;
 }
+
+bool Mesh::BoundingBox(AABB& outputBox) const {
+    if (boundingBoxCached) {
+        outputBox = boundingBox;
+        return true;
+    }
+    // If there are no triangles, return false
+    if (triangles.empty()) {
+        return false;
+    }
+
+    // Initialize with the first triangle's bounding box
+    AABB tempBox;
+    if (!triangles[0].BoundingBox(tempBox)) {
+        return false;
+    }
+    
+    outputBox = tempBox;
+    boundingBox = outputBox;
+    boundingBoxCached = true;
+
+    // Expand the box to include all other triangles
+    for (size_t i = 1; i < triangles.size(); i++) {
+        if (!triangles[i].BoundingBox(tempBox)) {
+            return false;
+        }
+        outputBox = AABB::SurroundingBox(outputBox, tempBox);
+    }
+
+    return true;
+}

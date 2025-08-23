@@ -9,17 +9,44 @@ void Scene::Clear() {
 }
 
 bool Scene::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const {
-    HitRecord tempRecord;
-    bool hitAnything = false;
-    float closestSoFar = tMax;
+    if (bvhBuilt && root) {
+        return root->Hit(ray, tMin, tMax, record);
+    } else {
+        HitRecord tempRecord;
+        bool hitAnything = false;
+        float closestSoFar = tMax;
+
+        for (const auto& object : objects) {
+            if (object->Hit(ray, tMin, closestSoFar, tempRecord)) {
+                hitAnything = true;
+                closestSoFar = tempRecord.t;
+                record = tempRecord;
+            }
+        }
+
+        return hitAnything;
+    }
+}
+
+void Scene::BuildBVH() {
+    if (objects.empty()) return;
+    root = std::make_shared<BVHNode>(objects, 0, objects.size());
+    bvhBuilt = true;
+}
+
+bool Scene::BoundingBox(AABB& outputBox) const {
+    if (objects.empty()) return false;
+
+    AABB tempBox;
+    bool firstBox = true;
 
     for (const auto& object : objects) {
-        if (object->Hit(ray, tMin, closestSoFar, tempRecord)) {
-            hitAnything = true;
-            closestSoFar = tempRecord.t;
-            record = tempRecord;
+        if (!object->BoundingBox(tempBox)) {
+            return false;
         }
+        outputBox = firstBox ? tempBox : AABB::SurroundingBox(outputBox, tempBox);
+        firstBox = false;
     }
 
-    return hitAnything;
+    return true;
 }

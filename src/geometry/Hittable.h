@@ -1,6 +1,7 @@
 #pragma once
 #include "core/Ray.h"
 #include "core/Vec3.h"
+#include "geometry/AABB.h"
 
 class Material; // Forward declaration
 
@@ -20,4 +21,9 @@ struct HitRecord {
 class Hittable {
 public:
     virtual bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const = 0;
+
+    virtual bool BoundingBox(AABB& outputBox) const = 0;
+protected:
+    mutable AABB boundingBox;
+    mutable bool boundingBoxCached = false;
 };

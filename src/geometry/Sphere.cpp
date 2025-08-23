@@ -35,3 +35,15 @@ bool Sphere::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) cons
     
     return true;
 }
+
+bool Sphere::BoundingBox(AABB& outputBox) const {
+    if (boundingBoxCached) {
+        outputBox = boundingBox;
+        return true;
+    }
+
+    boundingBox = AABB(Vec3(-1, -1, -1), Vec3(1, 1, 1));
+    boundingBoxCached = true;
+    outputBox = boundingBox;
+    return true;
+}

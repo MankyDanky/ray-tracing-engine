@@ -35,3 +35,15 @@ bool Plane::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const
     
     return true;
 }
+
+bool Plane::BoundingBox(AABB& outputBox) const {
+    if (boundingBoxCached) {
+        outputBox = boundingBox;
+        return true;
+    }
+    float epsilon = 0.001f;
+    outputBox = AABB(Vec3(-1, -epsilon, -1), Vec3(1, epsilon, 1));
+    boundingBox = outputBox;
+    boundingBoxCached = true;
+    return true;
+}

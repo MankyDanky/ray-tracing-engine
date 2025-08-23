@@ -8,6 +8,10 @@ inline float RandomFloat() {
     return distribution(generator);
 }
 
+inline int RandomInt(int min, int max) {
+    return min + rand() % (max - min + 1);
+}
+
 inline Vec3 RandomInUnitSphere() {
     while (true) {
         Vec3 p(

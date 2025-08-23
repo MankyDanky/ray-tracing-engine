@@ -33,3 +33,39 @@ bool Triangle::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) co
 
     return true;
 }
+
+bool Triangle::BoundingBox(AABB& outputBox) const {
+    if (boundingBoxCached) {
+        outputBox = boundingBox;
+        return true;
+    }
+    // Find min and max for each dimension
+    float minX = std::min(std::min(v0.x, v1.x), v2.x);
+    float minY = std::min(std::min(v0.y, v1.y), v2.y);
+    float minZ = std::min(std::min(v0.z, v1.z), v2.z);
+    
+    float maxX = std::max(std::max(v0.x, v1.x), v2.x);
+    float maxY = std::max(std::max(v0.y, v1.y), v2.y);
+    float maxZ = std::max(std::max(v0.z, v1.z), v2.z);
+    
+    // Add a small epsilon to prevent zero-thickness boxes
+    float epsilon = 0.0001f;
+    if (maxX - minX < epsilon) {
+        maxX += epsilon * 0.5f;
+        minX -= epsilon * 0.5f;
+    }
+    if (maxY - minY < epsilon) {
+        maxY += epsilon * 0.5f;
+        minY -= epsilon * 0.5f;
+    }
+    if (maxZ - minZ < epsilon) {
+        maxZ += epsilon * 0.5f;
+        minZ -= epsilon * 0.5f;
+    }
+    
+    // Create the bounding box
+    outputBox = AABB(Vec3(minX, minY, minZ), Vec3(maxX, maxY, maxZ));
+    boundingBox = outputBox;
+    boundingBoxCached = true;
+    return true;
+}
