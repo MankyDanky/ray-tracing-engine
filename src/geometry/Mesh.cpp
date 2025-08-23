@@ -42,6 +42,15 @@ bool Mesh::LoadFromOBJ(const std::string& filename) {
 }
 
 bool Mesh::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const {
+    if (!bvhBuilt) {
+        BuildBVH();
+    }
+
+    if (meshBVH) {
+        return meshBVH->Hit(ray, tMin, tMax, record);
+    }
+
+    std::cout << "No BVH found, checking triangles individually." << std::endl;
     bool hitAnything = false;
     float closestSoFar = tMax;
 
@@ -62,28 +71,29 @@ bool Mesh::BoundingBox(AABB& outputBox) const {
         outputBox = boundingBox;
         return true;
     }
-    // If there are no triangles, return false
-    if (triangles.empty()) {
-        return false;
+
+    if (!bvhBuilt) {
+        BuildBVH();
     }
 
-    // Initialize with the first triangle's bounding box
-    AABB tempBox;
-    if (!triangles[0].BoundingBox(tempBox)) {
-        return false;
+    bool result = meshBVH->BoundingBox(outputBox);
+    if (result) {
+        boundingBox = outputBox;
+        boundingBoxCached = true;
     }
-    
-    outputBox = tempBox;
-    boundingBox = outputBox;
-    boundingBoxCached = true;
+    return result;
+}
 
-    // Expand the box to include all other triangles
-    for (size_t i = 1; i < triangles.size(); i++) {
-        if (!triangles[i].BoundingBox(tempBox)) {
-            return false;
-        }
-        outputBox = AABB::SurroundingBox(outputBox, tempBox);
+void Mesh::BuildBVH() const {
+    if (bvhBuilt || triangles.empty()) return;
+
+    std::vector<std::shared_ptr<Hittable>> trianglePtrs;
+    trianglePtrs.reserve(triangles.size());
+
+    for (const auto& triangle : triangles) {
+        trianglePtrs.push_back(std::make_shared<Triangle>(triangle));
     }
 
-    return true;
+    meshBVH = std::make_shared<BVHNode>(trianglePtrs, 0, trianglePtrs.size());
+    bvhBuilt = true;
 }
