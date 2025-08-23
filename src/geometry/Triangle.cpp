@@ -3,28 +3,31 @@
 bool Triangle::Hit(const Ray& ray, float tMin, float tMax, HitRecord& record) const {
     Vec3 h = ray.direction.Cross(e2);
     float a = e1.Dot(h);
-    
-    if (std::abs(a) < 1e-8f) return false;
 
+    if (abs(a) < 1e-8) 
+        return false;
+    
     float f = 1.0f / a;
     Vec3 s = ray.origin - v0;
     float u = f * s.Dot(h);
 
-    if (u < 0.0f || u > 1.0f) return false;
-
+    if (u < 0.0f || u > 1.0f)
+        return false;
+    
     Vec3 q = s.Cross(e1);
     float v = f * ray.direction.Dot(q);
 
-    if (v < 0.0f || u + v > 1.0f) return false;
+    if (v < 0.0f || u + v > 1.0f)
+        return false;
 
     float t = f * e2.Dot(q);
-    if (t < tMin || t > tMax) return false;
+    if (t < tMin || t > tMax)
+        return false;
 
     record.t = t;
     record.point = ray.At(t);
-    record.material = material;
     record.normal = normal;
-    record.SetFaceNormal(ray, normal);
+    record.material = material;
 
     return true;
 }
