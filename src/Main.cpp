@@ -169,7 +169,7 @@ int main() {
                 isRunning = false;
             }
         }
-        /*
+        
         for (int j = imageHeight-1; j >= 0; --j) {
             for (int i = 0; i < imageWidth; ++i) {
                 Vec3 pixelColor(0, 0, 0);
@@ -192,7 +192,7 @@ int main() {
                     static_cast<uint8_t>(pixelColor.z * 255),
                     255); 
             }
-        }*/
+        }
         std::cout << "Rendered" << std::endl;
         SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
