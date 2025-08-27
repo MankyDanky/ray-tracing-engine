@@ -162,11 +162,30 @@ int main() {
     }
     SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
 
+    Uint64 lastTime = SDL_GetPerformanceCounter();
+    Uint64 frequency = SDL_GetPerformanceFrequency();
+    float deltaTime = 0.0f;
+
     while (isRunning) {
+        Uint64 currentTime = SDL_GetPerformanceCounter();
+        deltaTime = (float)(currentTime - lastTime) / (float)frequency;
+        lastTime = currentTime;
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 isRunning = false;
+            } else if (event.type == SDL_EVENT_KEY_DOWN) {
+                switch (event.key.key) {
+                    case SDLK_W:
+                        printf("W key pressed!\n");
+                        camera.SetPosition(camera.GetPosition() + Vec3(0, 0, 0.1f) * deltaTime);
+                        break;
+                    case SDLK_S:
+                        printf("S key pressed!\n");
+                        camera.SetPosition(camera.GetPosition() + Vec3(0, 0, -0.1f) * deltaTime);
+                        break;
+                }
             }
         }
 

@@ -4,7 +4,7 @@
 
 class Camera {
 private:
-    Vec3 origin;
+    Vec3 position;
     Vec3 lowerLeftCorner;
     Vec3 horizontal;
     Vec3 vertical;
@@ -22,6 +22,17 @@ public:
         float vFov,
         float aspectRatio 
     );
+
+    // Getter and setter for position
+    Vec3 GetPosition() {
+        return position;
+    }
+
+    void SetPosition(Vec3 newPosition) {
+        Vec3 deltaPosition = newPosition - position;
+        lowerLeftCorner += deltaPosition;
+        position = newPosition;
+    }
     
     // Generate a ray for the given pixel coordinates (u,v in [0,1])
     Ray GetRay(float u, float v) const;
