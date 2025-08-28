@@ -178,11 +178,9 @@ int main() {
             } else if (event.type == SDL_EVENT_KEY_DOWN) {
                 switch (event.key.key) {
                     case SDLK_W:
-                        printf("W key pressed!\n");
                         camera.SetPosition(camera.GetPosition() + Vec3(0, 0, 0.1f) * deltaTime);
                         break;
                     case SDLK_S:
-                        printf("S key pressed!\n");
                         camera.SetPosition(camera.GetPosition() + Vec3(0, 0, -0.1f) * deltaTime);
                         break;
                 }
