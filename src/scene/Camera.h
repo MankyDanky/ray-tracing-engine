@@ -1,39 +1,55 @@
 #pragma once
 #include "Vec3.h"
 #include "Ray.h"
+#include <cmath>
+#include <algorithm>
 
 class Camera {
 private:
     Vec3 position;
-    Vec3 lowerLeftCorner;
-    Vec3 horizontal;
-    Vec3 vertical;
+    float focalLength;
+    float pitch;
+    float yaw;
+    float aspectRatio;
     Vec3 u, v, w;
 
 public:
-    // Simple constructor for a basic camera
     Camera();
-    
-    // Constructor for configurable camera
-    Camera(
-        const Vec3& lookFrom,
-        const Vec3& lookAt,
-        const Vec3& vUp,
-        float vFov,
-        float aspectRatio 
-    );
-
     // Getter and setter for position
     Vec3 GetPosition() {
         return position;
     }
 
     void SetPosition(Vec3 newPosition) {
-        Vec3 deltaPosition = newPosition - position;
-        lowerLeftCorner += deltaPosition;
         position = newPosition;
     }
     
-    // Generate a ray for the given pixel coordinates (u,v in [0,1])
+    void UpdateVectors();
+
+    float GetPitch() const { return pitch; }
+    void SetPitch(float newPitch) { pitch = std::clamp(newPitch, -1.5f, 1.5f); }
+    float GetYaw() const { return yaw; }
+    void SetYaw(float newYaw) { yaw = newYaw; }
+
+    void Pitch(float angle) {
+        pitch = std::clamp(pitch + angle, -1.5f, 1.5f);
+    }
+
+    void Yaw(float angle) {
+        yaw += angle;
+    }
+    
+    void MoveForward(float amount) {
+        position += w * amount;
+    }
+
+    void MoveSideways(float amount) {
+        position += u * amount;
+    }
+
+    void MoveUp(float amount) {
+        position += v * amount;
+    }
+
     Ray GetRay(float u, float v) const;
 };
