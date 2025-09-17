@@ -178,12 +178,22 @@ int main() {
             } else if (event.type == SDL_EVENT_KEY_DOWN) {
                 switch (event.key.key) {
                     case SDLK_W:
-                        camera.SetPosition(camera.GetPosition() + Vec3(0, 0, 0.1f) * deltaTime);
+                        camera.MoveForward(-0.1f * deltaTime);
                         break;
                     case SDLK_S:
-                        camera.SetPosition(camera.GetPosition() + Vec3(0, 0, -0.1f) * deltaTime);
+                        camera.MoveForward(0.1f * deltaTime);
+                        break;
+                    case SDLK_A:
+                        camera.MoveSideways(-0.1f * deltaTime);
+                        break;
+                    case SDLK_D:
+                        camera.MoveSideways(0.1f * deltaTime);
                         break;
                 }
+            } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
+                camera.Yaw(-event.motion.xrel * 0.002f);
+                camera.Pitch(-event.motion.yrel * 0.002f);
+                camera.UpdateVectors();
             }
         }
 
