@@ -38,6 +38,13 @@ public:
         return *this - normal * (2 * Dot(normal));
     }
 
+    Vec3 Refract(const Vec3& normal, float eta) const {
+        float cosTheta = std::fmin(((*this) * -1).Dot(normal), 1.0f);
+        Vec3 rOutPerp = (*this + normal * cosTheta) * eta;
+        Vec3 rOutParallel = normal * -std::sqrt(std::fabs(1.0f - rOutPerp.LengthSquared()));
+        return rOutPerp + rOutParallel;
+    }
+
 
     // Operators
     Vec3 operator+(const Vec3& other) const {

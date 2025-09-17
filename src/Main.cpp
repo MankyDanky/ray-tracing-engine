@@ -12,6 +12,7 @@
 #include "utils/Image.h"
 #include "materials/Lambertian.h"
 #include "materials/Metal.h"
+#include "materials/Dielectric.h"
 #include "core/Random.h"
 #include <iostream>
 #include <memory>
@@ -33,6 +34,7 @@ int main() {
     auto groundMaterial = std::make_shared<Lambertian>(Vec3(0.8f, 0.8f, 0.0f));
     auto centerMaterial = std::make_shared<Lambertian>(Vec3(0.7f, 0.3f, 0.3f));
     auto cylinderMaterial = std::make_shared<Metal>(Vec3(0.3f, 0.7f, 0.3f));
+    auto glassMaterial = std::make_shared<Dielectric>(1.5f);
 
     auto sphere = std::make_shared<Sphere>(centerMaterial);
     auto transformedSphere = std::make_shared<Transform>(sphere);
@@ -40,7 +42,7 @@ int main() {
     transformedSphere->SetRotation(Vec3(0, 0, 0));
     transformedSphere->SetScale(Vec3(0.25f, 0.5f, 0.5f));
 
-    auto cube = std::make_shared<Cube>(centerMaterial);
+    auto cube = std::make_shared<Sphere>(glassMaterial);
     auto transformedCube = std::make_shared<Transform>(cube);
     transformedCube->SetPosition(Vec3(1.25f, -0.5f, -2));
     transformedCube->SetRotation(Vec3(0, 45, 45));
