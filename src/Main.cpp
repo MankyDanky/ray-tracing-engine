@@ -18,6 +18,39 @@
 #include <iostream>
 #include <memory>
 #include <SDL3/SDL.h>
+#include <thread>
+#include <vector>
+#include <mutex>
+
+void RenderRows(int startRow, int endRow, const int imageWidth, const int imageHeight, 
+    const int samplesPerPixel, const int maxDepth, const Camera& camera, const Scene& scene, 
+    const Renderer& renderer, Image& image, std::vector<uint32_t>& cpuFB) 
+{
+    int totalRows = endRow - startRow;
+
+    for (int j = startRow; j > endRow; --j) 
+    {
+        for (int i = 0; i < imageWidth; ++i) 
+        {
+            Vec3 pixelColor(0, 0, 0);
+            for (int s = 0; s < samplesPerPixel; ++s) 
+            {
+                float u = (i + RandomFloat()) / (imageWidth - 1);
+                float v = (j + RandomFloat()) / (imageHeight - 1);
+                Ray ray = camera.GetRay(u, v);
+                pixelColor += renderer.TraceRay(ray, scene, maxDepth);
+            }
+            // Average the color and write to image
+             pixelColor /= float(samplesPerPixel);
+             image.SetPixel(i, j, pixelColor);
+             cpuFB[(imageHeight - j - 1) * imageWidth + i] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
+                 nullptr, static_cast<uint8_t>(std::min(pixelColor.x, 1.0f) * 255),
+                 static_cast<uint8_t>(std::min(pixelColor.y, 1.0f) * 255),
+                 static_cast<uint8_t>(std::min(pixelColor.z, 1.0f) * 255),
+                 255);
+        }
+    }
+}
 
 int main() { 
     // Image dimensions
@@ -103,34 +136,42 @@ int main() {
     
     // Create renderer
     Renderer renderer;
-    
-    // Render the scene
-    std::cout << "Rendering..." << std::endl;
-    
-    for (int j = imageHeight-1; j >= 0; --j) {
-        std::cout << "\rScanlines remaining: " << j << ' ' << std::flush;
-        
-        for (int i = 0; i < imageWidth; ++i) {
-            Vec3 pixelColor(0, 0, 0);
-            
-            // Sample multiple rays per pixel for anti-aliasing
-            for (int s = 0; s < samplesPerPixel; ++s) {
-                float u = float(i + RandomFloat()) / float(imageWidth-1);
-                float v = float(j + RandomFloat()) / float(imageHeight-1);
-                
-                Ray ray = camera.GetRay(u, v);
-                pixelColor += renderer.TraceRay(ray, scene, maxDepth);
-            }
-            
-            // Average the color over all samples
-            pixelColor /= float(samplesPerPixel);
-            
-            // Store the pixel color
-            image.SetPixel(i, imageHeight-1-j, pixelColor);
+
+    SDL_Window* sdlWindow = SDL_CreateWindow("Path Tracing Renderer", 800, 450, SDL_WINDOW_RESIZABLE);
+
+    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(sdlWindow, nullptr);
+
+    SDL_Texture* sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, imageWidth, imageHeight);
+
+    bool isRunning = true;
+
+    std::vector<uint32_t> cpuFB(imageWidth * imageHeight);
+
+    unsigned int numThread = std::max(1u, std::thread::hardware_concurrency() - 1);
+    std::cout << "Using " << numThread << " threads for rendering." << std::endl;
+
+    std::vector<std::thread> threads;
+    int rowsPerThread = imageHeight / numThread;
+    int remainingRows = imageHeight % numThread;
+
+    int currentRow = imageHeight - 1;
+
+    for (unsigned int t = 0; t < numThread; ++t) 
+    {
+        int startRow = currentRow;
+        int endRow = currentRow - rowsPerThread;
+        if (t == numThread - 1) 
+        {
+            endRow -= remainingRows; // Last thread takes the remaining rows
         }
+        threads.emplace_back(RenderRows, startRow, endRow, imageWidth, imageHeight, samplesPerPixel, maxDepth, std::ref(camera), std::ref(scene), std::ref(renderer), std::ref(image), std::ref(cpuFB));
+        currentRow = endRow;
     }
-    
-    std::cout << "\nDone. Saving image..." << std::endl;
+
+    for (auto& thread : threads) 
+    {
+        thread.join();
+    }
     
     // Save the rendered image
     if (image.SavePPM("output.ppm")) {
@@ -144,15 +185,7 @@ int main() {
         return 0;
     }
 
-    SDL_Window* sdlWindow = SDL_CreateWindow("Path Tracing Renderer", 800, 450, SDL_WINDOW_RESIZABLE);
-
-    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(sdlWindow, nullptr);
-
-    SDL_Texture* sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, imageWidth, imageHeight);
-
-    bool isRunning = true;
-
-    std::vector<uint32_t> cpuFB(imageWidth * imageHeight);
+    
     for (int y = 0; y < imageHeight; y++) {
         for (int x = 0; x < imageWidth; x++) {
             Vec3 color = image.pixels[y * imageWidth + x];
@@ -174,6 +207,8 @@ int main() {
         Uint64 currentTime = SDL_GetPerformanceCounter();
         deltaTime = (float)(currentTime - lastTime) / (float)frequency;
         lastTime = currentTime;
+        float fps = 1.0f / deltaTime;
+        std::cout << "FPS: " << fps << "\r" << std::flush;
 
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -200,30 +235,27 @@ int main() {
                 camera.UpdateVectors();
             }
         }
+        threads.clear();
 
-        for (int j = 0; j < imageHeight; j++) {
-            for (int i = 0; i < imageWidth; i++) {
-                Vec3 pixelColor(0, 0, 0);
-                
-                // Sample multiple rays per pixel for anti-aliasing
-                for (int s = 0; s < samplesPerPixel; s++) {
-                    float u = float(i + RandomFloat()) / float(imageWidth-1);
-                    float v = float(j + RandomFloat()) / float(imageHeight-1);
-                    
-                    Ray ray = camera.GetRay(u, v);
-                    pixelColor += renderer.TraceRay(ray, scene, maxDepth);
-                }
-                
-                // Average the color over all samples
-                pixelColor /= float(samplesPerPixel);
-                cpuFB[(imageHeight - j - 1) * imageWidth + i] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
-                    nullptr,
-                    static_cast<uint8_t>(std::min(pixelColor.x, 1.0f) * 255),
-                    static_cast<uint8_t>(std::min(pixelColor.y, 1.0f) * 255),
-                    static_cast<uint8_t>(std::min(pixelColor.z, 1.0f) * 255),
-                    255);
+        currentRow = imageHeight - 1;
+
+        for (unsigned int t = 0; t < numThread; ++t) 
+        {
+            int startRow = currentRow;
+            int endRow = currentRow - rowsPerThread;
+            if (t == numThread - 1) 
+            {
+                endRow -= remainingRows; // Last thread takes the remaining rows
             }
+            threads.emplace_back(RenderRows, startRow, endRow, imageWidth, imageHeight, samplesPerPixel, maxDepth, std::ref(camera), std::ref(scene), std::ref(renderer), std::ref(image), std::ref(cpuFB));
+            currentRow = endRow;
         }
+
+        for (auto& thread : threads) 
+        {
+            thread.join();
+        }
+        
         std::cout << "Rendered" << std::endl;
         SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
