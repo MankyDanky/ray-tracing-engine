@@ -14,7 +14,7 @@ Vec3 Renderer::TraceRay(const Ray& ray, const Scene& scene, int depth) const {
         if (record.material && record.material->Scatter(ray, record, attenuation, scattered)) {
             return attenuation * TraceRay(scattered, scene, depth - 1);
         }
-        return Vec3(0, 0, 0);
+        return attenuation;
     }
     
     // Background gradient (sky)

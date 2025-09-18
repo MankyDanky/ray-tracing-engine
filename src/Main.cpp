@@ -13,6 +13,7 @@
 #include "materials/Lambertian.h"
 #include "materials/Metal.h"
 #include "materials/Dielectric.h"
+#include "materials/Emissive.h"
 #include "core/Random.h"
 #include <iostream>
 #include <memory>
@@ -34,7 +35,8 @@ int main() {
     auto groundMaterial = std::make_shared<Lambertian>(Vec3(0.8f, 0.8f, 0.0f));
     auto centerMaterial = std::make_shared<Lambertian>(Vec3(0.7f, 0.3f, 0.3f));
     auto cylinderMaterial = std::make_shared<Metal>(Vec3(0.3f, 0.7f, 0.3f));
-    auto glassMaterial = std::make_shared<Dielectric>(1.5f);
+    auto glassMaterial = std::make_shared<Dielectric>(1.05f);
+    auto emissiveMaterial = std::make_shared<Emissive>(Vec3(1.0f, 1.0f, 1.0f), 1.0f);
 
     auto sphere = std::make_shared<Sphere>(centerMaterial);
     auto transformedSphere = std::make_shared<Transform>(sphere);
@@ -42,7 +44,7 @@ int main() {
     transformedSphere->SetRotation(Vec3(0, 0, 0));
     transformedSphere->SetScale(Vec3(0.25f, 0.5f, 0.5f));
 
-    auto cube = std::make_shared<Sphere>(glassMaterial);
+    auto cube = std::make_shared<Sphere>(emissiveMaterial);
     auto transformedCube = std::make_shared<Transform>(cube);
     transformedCube->SetPosition(Vec3(1.25f, -0.5f, -2));
     transformedCube->SetRotation(Vec3(0, 45, 45));
@@ -72,7 +74,7 @@ int main() {
     transformedCylinder->SetScale(Vec3(0.5f, 0.5f, 0.5f));
 
     auto customMeshMaterial = std::make_shared<Metal>(Vec3(0.5f, 0.5f, 0.9f));
-    auto customMesh = std::make_shared<Mesh>(customMeshMaterial);
+    auto customMesh = std::make_shared<Mesh>(groundMaterial);
     if (customMesh->LoadFromOBJ("models/monkey.obj")) {
         auto transformedMesh = std::make_shared<Transform>(customMesh);
         transformedMesh->SetPosition(Vec3(0, -0.75, -2));
@@ -156,9 +158,9 @@ int main() {
             Vec3 color = image.pixels[y * imageWidth + x];
             cpuFB[y * imageWidth + x] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
                 nullptr,
-                static_cast<uint8_t>(color.x * 255),
-                static_cast<uint8_t>(color.y * 255),
-                static_cast<uint8_t>(color.z * 255),
+                static_cast<uint8_t>(std::min(color.x, 1.0f) * 255),
+                static_cast<uint8_t>(std::min(color.y, 1.0f) * 255),
+                static_cast<uint8_t>(std::min(color.z, 1.0f) * 255),
                 255);
         }
     }
@@ -216,9 +218,9 @@ int main() {
                 pixelColor /= float(samplesPerPixel);
                 cpuFB[(imageHeight - j - 1) * imageWidth + i] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
                     nullptr,
-                    static_cast<uint8_t>(pixelColor.x * 255),
-                    static_cast<uint8_t>(pixelColor.y * 255),
-                    static_cast<uint8_t>(pixelColor.z * 255),
+                    static_cast<uint8_t>(std::min(pixelColor.x, 1.0f) * 255),
+                    static_cast<uint8_t>(std::min(pixelColor.y, 1.0f) * 255),
+                    static_cast<uint8_t>(std::min(pixelColor.z, 1.0f) * 255),
                     255);
             }
         }
