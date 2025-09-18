@@ -1,3 +1,4 @@
+#pragma once
 #include "materials/Material.h"
 #include "core/Vec3.h"
 
