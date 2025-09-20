@@ -21,6 +21,7 @@
 #include <thread>
 #include <vector>
 #include <mutex>
+#include "utils/ThreadPool.h"
 
 void RenderRows(int startRow, int endRow, const int imageWidth, const int imageHeight, 
     const int samplesPerPixel, const int maxDepth, const Camera& camera, const Scene& scene, 
@@ -56,7 +57,7 @@ int main() {
     // Image dimensions
     const int imageWidth = 400;  // Keep small for faster rendering
     const int imageHeight = 225;  // 16:9 aspect ratio
-    const int samplesPerPixel = 20;  // Anti-aliasing samples
+    const int samplesPerPixel = 5;  // Anti-aliasing samples
     const int maxDepth = 5;  // Maximum ray bounce depth
     
     // Create the output image
@@ -71,13 +72,13 @@ int main() {
     auto glassMaterial = std::make_shared<Dielectric>(1.05f);
     auto emissiveMaterial = std::make_shared<Emissive>(Vec3(1.0f, 1.0f, 1.0f), 1.0f);
 
-    auto sphere = std::make_shared<Sphere>(centerMaterial);
+    auto sphere = std::make_shared<Sphere>(glassMaterial);
     auto transformedSphere = std::make_shared<Transform>(sphere);
     transformedSphere->SetPosition(Vec3(0, 0, -1));
     transformedSphere->SetRotation(Vec3(0, 0, 0));
     transformedSphere->SetScale(Vec3(0.25f, 0.5f, 0.5f));
 
-    auto cube = std::make_shared<Sphere>(emissiveMaterial);
+    auto cube = std::make_shared<Sphere>(glassMaterial);
     auto transformedCube = std::make_shared<Transform>(cube);
     transformedCube->SetPosition(Vec3(1.25f, -0.5f, -2));
     transformedCube->SetRotation(Vec3(0, 45, 45));
@@ -150,9 +151,11 @@ int main() {
     unsigned int numThread = std::max(1u, std::thread::hardware_concurrency() - 1);
     std::cout << "Using " << numThread << " threads for rendering." << std::endl;
 
-    std::vector<std::thread> threads;
+    ThreadPool threadPool(numThread);
+
     int rowsPerThread = imageHeight / numThread;
     int remainingRows = imageHeight % numThread;
+    std::vector<RenderTask> renderTasks;
 
     int currentRow = imageHeight - 1;
 
@@ -164,14 +167,36 @@ int main() {
         {
             endRow -= remainingRows; // Last thread takes the remaining rows
         }
-        threads.emplace_back(RenderRows, startRow, endRow, imageWidth, imageHeight, samplesPerPixel, maxDepth, std::ref(camera), std::ref(scene), std::ref(renderer), std::ref(image), std::ref(cpuFB));
+        renderTasks.emplace_back(RenderTask{ startRow, endRow });
         currentRow = endRow;
     }
 
-    for (auto& thread : threads) 
-    {
-        thread.join();
-    }
+    auto renderFunction = [&](const RenderTask& task) {
+        for (int j = task.startRow; j > task.endRow; --j) 
+        {
+            for (int i = 0; i < imageWidth; ++i) 
+            {
+                Vec3 pixelColor(0, 0, 0);
+                for (int s = 0; s < samplesPerPixel; ++s) 
+                {
+                    float u = (i + RandomFloat()) / (imageWidth - 1);
+                    float v = (j + RandomFloat()) / (imageHeight - 1);
+                    Ray ray = camera.GetRay(u, v);
+                    pixelColor += renderer.TraceRay(ray, scene, maxDepth);
+                }
+                // Average the color and write to image
+                 pixelColor /= float(samplesPerPixel);
+                 image.SetPixel(i, j, pixelColor);
+                 cpuFB[(imageHeight - j - 1) * imageWidth + i] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
+                     nullptr, static_cast<uint8_t>(std::min(pixelColor.x, 1.0f) * 255),
+                     static_cast<uint8_t>(std::min(pixelColor.y, 1.0f) * 255),
+                     static_cast<uint8_t>(std::min(pixelColor.z, 1.0f) * 255),
+                     255);
+            }
+        }
+    };
+
+    threadPool.SubmitAndWait(renderTasks, renderFunction);
     
     // Save the rendered image
     if (image.SavePPM("output.ppm")) {
@@ -184,19 +209,7 @@ int main() {
         SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
         return 0;
     }
-
     
-    for (int y = 0; y < imageHeight; y++) {
-        for (int x = 0; x < imageWidth; x++) {
-            Vec3 color = image.pixels[y * imageWidth + x];
-            cpuFB[y * imageWidth + x] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
-                nullptr,
-                static_cast<uint8_t>(std::min(color.x, 1.0f) * 255),
-                static_cast<uint8_t>(std::min(color.y, 1.0f) * 255),
-                static_cast<uint8_t>(std::min(color.z, 1.0f) * 255),
-                255);
-        }
-    }
     SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
 
     Uint64 lastTime = SDL_GetPerformanceCounter();
@@ -217,16 +230,16 @@ int main() {
             } else if (event.type == SDL_EVENT_KEY_DOWN) {
                 switch (event.key.key) {
                     case SDLK_W:
-                        camera.MoveForward(-0.1f * deltaTime);
+                        camera.MoveForward(-0.5f * deltaTime);
                         break;
                     case SDLK_S:
-                        camera.MoveForward(0.1f * deltaTime);
+                        camera.MoveForward(0.5f * deltaTime);
                         break;
                     case SDLK_A:
-                        camera.MoveSideways(-0.1f * deltaTime);
+                        camera.MoveSideways(-0.5f * deltaTime);
                         break;
                     case SDLK_D:
-                        camera.MoveSideways(0.1f * deltaTime);
+                        camera.MoveSideways(0.5f * deltaTime);
                         break;
                 }
             } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
@@ -235,28 +248,9 @@ int main() {
                 camera.UpdateVectors();
             }
         }
-        threads.clear();
-
-        currentRow = imageHeight - 1;
-
-        for (unsigned int t = 0; t < numThread; ++t) 
-        {
-            int startRow = currentRow;
-            int endRow = currentRow - rowsPerThread;
-            if (t == numThread - 1) 
-            {
-                endRow -= remainingRows; // Last thread takes the remaining rows
-            }
-            threads.emplace_back(RenderRows, startRow, endRow, imageWidth, imageHeight, samplesPerPixel, maxDepth, std::ref(camera), std::ref(scene), std::ref(renderer), std::ref(image), std::ref(cpuFB));
-            currentRow = endRow;
-        }
-
-        for (auto& thread : threads) 
-        {
-            thread.join();
-        }
         
-        std::cout << "Rendered" << std::endl;
+        threadPool.SubmitAndWait(renderTasks, renderFunction);
+
         SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
         SDL_RenderClear(sdlRenderer);
