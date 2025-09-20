@@ -8,3 +8,5 @@ A simple C++ implementation of a CPU-based path tracer for realistic image rende
 ![More shapes + transformations](gallery/cylinder_support.png)
 ![Metallic material](gallery/metal.png)
 ![Custom meshes!](gallery/metal_monkey.png)
+![Glass](gallery/glass_orb.png)
+![Glowing](gallery/glowing_orb.png)
