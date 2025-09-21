@@ -68,7 +68,7 @@ int main() {
     
     auto groundMaterial = std::make_shared<Lambertian>(Vec3(0.8f, 0.8f, 0.0f));
     auto centerMaterial = std::make_shared<Lambertian>(Vec3(0.7f, 0.3f, 0.3f));
-    auto cylinderMaterial = std::make_shared<Metal>(Vec3(0.3f, 0.7f, 0.3f));
+    auto cylinderMaterial = std::make_shared<Metal>(Vec3(0.2f, 0.2f, 0.4f));
     auto glassMaterial = std::make_shared<Dielectric>(1.05f);
     auto emissiveMaterial = std::make_shared<Emissive>(Vec3(1.0f, 1.0f, 1.0f), 1.0f);
 
@@ -84,11 +84,11 @@ int main() {
     transformedCube->SetRotation(Vec3(0, 45, 45));
     transformedCube->SetScale(Vec3(0.5f, 0.5f, 0.5f));
 
-    auto plane = std::make_shared<Plane>(groundMaterial);
+    auto plane = std::make_shared<Plane>(cylinderMaterial);
     auto transformedPlane = std::make_shared<Transform>(plane);
-    transformedPlane->SetPosition(Vec3(0, -0.5f, -2));
+    transformedPlane->SetPosition(Vec3(0, -1.2f, -5));
     transformedPlane->SetRotation(Vec3(0, 0, 0));
-    transformedPlane->SetScale(Vec3(1, 1, 1));
+    transformedPlane->SetScale(Vec3(5, 5, 5));
     auto cube2 = std::make_shared<Cube>(groundMaterial);
     auto transformedCube2 = std::make_shared<Transform>(cube2);
     transformedCube2->SetPosition(Vec3(0, -0.5f, -3));
@@ -129,6 +129,7 @@ int main() {
     //scene.Add(transformedPlane);
     //scene.Add(transformedCube2);
     scene.Add(transformedCube);
+    scene.Add(transformedPlane);
     scene.BuildBVH();
     //scene.Add(transformedCylinder);
     
