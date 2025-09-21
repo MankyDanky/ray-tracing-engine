@@ -24,6 +24,10 @@ public:
         position = newPosition;
     }
     
+    Vec3 GetForward() {
+        return w;
+    }
+
     void UpdateVectors();
 
     float GetPitch() const { return pitch; }

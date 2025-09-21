@@ -171,6 +171,12 @@ int main() {
         currentRow = endRow;
     }
 
+    std::vector<Vec3> accumulationBuffer(imageWidth * imageHeight, Vec3(0,0,0));
+    int accumulatedFrames = 0;
+    bool cameraMoving = true;
+    Vec3 lastCameraPosition = camera.GetPosition();
+    Vec3 lastCameraForward = camera.GetForward();
+
     auto renderFunction = [&](const RenderTask& task) {
         for (int j = task.startRow; j > task.endRow; --j) 
         {
@@ -184,13 +190,31 @@ int main() {
                     Ray ray = camera.GetRay(u, v);
                     pixelColor += renderer.TraceRay(ray, scene, maxDepth);
                 }
+
+                int pixelIndex = j * imageWidth + i;
+
                 // Average the color and write to image
                  pixelColor /= float(samplesPerPixel);
-                 image.SetPixel(i, j, pixelColor);
+
+                 if (!cameraMoving) {
+                    accumulationBuffer[pixelIndex] += pixelColor;
+                 } else if (pixelIndex == 0) {
+                    std::fill(accumulationBuffer.begin(), accumulationBuffer.end(), Vec3(0,0,0));
+                    accumulatedFrames = 0;
+                 }
+
+                 Vec3 finalColor;
+                 if (accumulatedFrames > 0) {
+                    finalColor = accumulationBuffer[pixelIndex] / float(accumulatedFrames);
+                 } else {
+                    finalColor = pixelColor;
+                 }
+
+                 image.SetPixel(i, j, finalColor);
                  cpuFB[(imageHeight - j - 1) * imageWidth + i] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
-                     nullptr, static_cast<uint8_t>(std::min(pixelColor.x, 1.0f) * 255),
-                     static_cast<uint8_t>(std::min(pixelColor.y, 1.0f) * 255),
-                     static_cast<uint8_t>(std::min(pixelColor.z, 1.0f) * 255),
+                     nullptr, static_cast<uint8_t>(std::min(finalColor.x, 1.0f) * 255),
+                     static_cast<uint8_t>(std::min(finalColor.y, 1.0f) * 255),
+                     static_cast<uint8_t>(std::min(finalColor.z, 1.0f) * 255),
                      255);
             }
         }
@@ -230,7 +254,7 @@ int main() {
         deltaTime = (float)(currentTime - lastTime) / (float)frequency;
         lastTime = currentTime;
         float fps = 1.0f / deltaTime;
-        std::cout << "FPS: " << fps << "\r" << std::flush;
+        std::cout<<"\rFPS: " << fps << "   \r" << std::flush;
 
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -285,13 +309,26 @@ int main() {
             }
         }
         
-        threadPool.SubmitAndWait(renderTasks, renderFunction);
+        
         if (keyState.w_pressed) camera.MoveForward(-0.5f * deltaTime);
         if (keyState.s_pressed) camera.MoveForward(0.5f * deltaTime);
         if (keyState.a_pressed) camera.MoveSideways(-0.5f * deltaTime);
         if (keyState.d_pressed) camera.MoveSideways(0.5f * deltaTime);
         if (keyState.space_pressed) camera.MoveUp(0.5f * deltaTime);
         if (keyState.shift_pressed) camera.MoveUp(-0.5f * deltaTime);
+
+        bool currentlyMoving = keyState.w_pressed || keyState.s_pressed || keyState.a_pressed || keyState.d_pressed || keyState.space_pressed || keyState.shift_pressed || camera.GetForward() != lastCameraForward;
+
+        lastCameraForward = camera.GetForward();
+
+        if (cameraMoving && !currentlyMoving) {
+            std::fill(accumulationBuffer.begin(), accumulationBuffer.end(), Vec3(0,0,0));
+            accumulatedFrames = 0;
+        }
+
+        cameraMoving = currentlyMoving;
+        if (!cameraMoving) accumulatedFrames++;
+        threadPool.SubmitAndWait(renderTasks, renderFunction);
         SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
         SDL_RenderClear(sdlRenderer);

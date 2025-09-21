@@ -64,6 +64,14 @@ public:
         return Vec3(x / scalar, y / scalar, z / scalar);
     }
 
+    bool operator==(const Vec3& other) const {
+        return x == other.x && y == other.y && z == other.z;
+    }
+
+    bool operator!=(const Vec3& other) const {
+        return !(*this == other);
+    }
+
     Vec3& operator+=(const Vec3& other) {
         x += other.x; y += other.y; z += other.z;
         return *this;
