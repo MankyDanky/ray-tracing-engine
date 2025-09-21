@@ -198,9 +198,6 @@ int main() {
 
                  if (!cameraMoving) {
                     accumulationBuffer[pixelIndex] += pixelColor;
-                 } else if (pixelIndex == 0) {
-                    std::fill(accumulationBuffer.begin(), accumulationBuffer.end(), Vec3(0,0,0));
-                    accumulatedFrames = 0;
                  }
 
                  Vec3 finalColor;
@@ -321,11 +318,10 @@ int main() {
 
         lastCameraForward = camera.GetForward();
 
-        if (cameraMoving && !currentlyMoving) {
+        if (!cameraMoving && currentlyMoving) {
             std::fill(accumulationBuffer.begin(), accumulationBuffer.end(), Vec3(0,0,0));
             accumulatedFrames = 0;
         }
-
         cameraMoving = currentlyMoving;
         if (!cameraMoving) accumulatedFrames++;
         threadPool.SubmitAndWait(renderTasks, renderFunction);
@@ -335,7 +331,7 @@ int main() {
         SDL_RenderTexture(sdlRenderer, sdlTexture, nullptr, nullptr);
         SDL_RenderPresent(sdlRenderer);
     }
-
+    
     SDL_DestroyTexture(sdlTexture);
     SDL_DestroyRenderer(sdlRenderer);
     SDL_DestroyWindow(sdlWindow);
