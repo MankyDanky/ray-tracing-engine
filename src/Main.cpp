@@ -217,6 +217,8 @@ int main() {
         bool s_pressed = false;
         bool a_pressed = false;
         bool d_pressed = false;
+        bool space_pressed = false;
+        bool shift_pressed = false;
     } keyState;
 
     Uint64 lastTime = SDL_GetPerformanceCounter();
@@ -248,6 +250,12 @@ int main() {
                     case SDLK_D:
                         keyState.d_pressed = true;
                         break;
+                    case SDLK_SPACE:
+                        keyState.space_pressed = true;
+                        break;
+                    case SDLK_LSHIFT:
+                        keyState.shift_pressed = true;
+                        break;
                 }
             } else if (event.type == SDL_EVENT_KEY_UP) {
                 switch (event.key.key) {
@@ -263,6 +271,12 @@ int main() {
                     case SDLK_D:
                         keyState.d_pressed = false;
                         break;
+                    case SDLK_SPACE:
+                        keyState.space_pressed = false;
+                        break;
+                    case SDLK_LSHIFT:
+                        keyState.shift_pressed = false;
+                        break;
                 }
             } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
                 camera.Yaw(-event.motion.xrel * 0.002f);
@@ -276,6 +290,8 @@ int main() {
         if (keyState.s_pressed) camera.MoveForward(0.5f * deltaTime);
         if (keyState.a_pressed) camera.MoveSideways(-0.5f * deltaTime);
         if (keyState.d_pressed) camera.MoveSideways(0.5f * deltaTime);
+        if (keyState.space_pressed) camera.MoveUp(0.5f * deltaTime);
+        if (keyState.shift_pressed) camera.MoveUp(-0.5f * deltaTime);
         SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
         SDL_RenderClear(sdlRenderer);
