@@ -212,6 +212,13 @@ int main() {
     
     SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
 
+    struct {
+        bool w_pressed = false;
+        bool s_pressed = false;
+        bool a_pressed = false;
+        bool d_pressed = false;
+    } keyState;
+
     Uint64 lastTime = SDL_GetPerformanceCounter();
     Uint64 frequency = SDL_GetPerformanceFrequency();
     float deltaTime = 0.0f;
@@ -230,16 +237,31 @@ int main() {
             } else if (event.type == SDL_EVENT_KEY_DOWN) {
                 switch (event.key.key) {
                     case SDLK_W:
-                        camera.MoveForward(-0.5f * deltaTime);
+                        keyState.w_pressed = true;
                         break;
                     case SDLK_S:
-                        camera.MoveForward(0.5f * deltaTime);
+                        keyState.s_pressed = true;
                         break;
                     case SDLK_A:
-                        camera.MoveSideways(-0.5f * deltaTime);
+                        keyState.a_pressed = true;
                         break;
                     case SDLK_D:
-                        camera.MoveSideways(0.5f * deltaTime);
+                        keyState.d_pressed = true;
+                        break;
+                }
+            } else if (event.type == SDL_EVENT_KEY_UP) {
+                switch (event.key.key) {
+                    case SDLK_W:
+                        keyState.w_pressed = false;
+                        break;
+                    case SDLK_S:
+                        keyState.s_pressed = false;
+                        break;
+                    case SDLK_A:
+                        keyState.a_pressed = false;
+                        break;
+                    case SDLK_D:
+                        keyState.d_pressed = false;
                         break;
                 }
             } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
@@ -250,7 +272,10 @@ int main() {
         }
         
         threadPool.SubmitAndWait(renderTasks, renderFunction);
-
+        if (keyState.w_pressed) camera.MoveForward(-0.5f * deltaTime);
+        if (keyState.s_pressed) camera.MoveForward(0.5f * deltaTime);
+        if (keyState.a_pressed) camera.MoveSideways(-0.5f * deltaTime);
+        if (keyState.d_pressed) camera.MoveSideways(0.5f * deltaTime);
         SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
         SDL_RenderClear(sdlRenderer);

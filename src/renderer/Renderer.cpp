@@ -3,7 +3,7 @@
 // Trace a single ray through the scene
 Vec3 Renderer::TraceRay(const Ray& ray, const Scene& scene, int depth) const {
     // Stop recursion after maximum depth
-    if (depth <= 0) return Vec3(0, 0, 0);
+    if (depth <= 0) return Vec3(1, 1, 1);
 
     HitRecord record;
     // Small offset to avoid self-intersection (shadow acne)
