@@ -1,0 +1,41 @@
+# ninja log v6
+4	894	7802728291734561	build.ninja	89c3ee153fc25061
+58	1913	7802721944353817	CMakeFiles/PathTracingRenderer.dir/src/geometry/Cube.cpp.o	aa39d2d46f2c0462
+4	894	7802728291704548	C:/Users/Aadik/Documents/C++ Projects/PathTracingRenderer/build_web/cmake_install.cmake	89c3ee153fc25061
+95	1972	7802721944723975	CMakeFiles/PathTracingRenderer.dir/src/geometry/Sphere.cpp.o	eef0a7e852f3452f
+120	1934	7802721944975875	CMakeFiles/PathTracingRenderer.dir/src/geometry/Triangle.cpp.o	d32ece336d0cebc0
+49	1941	7802721944273803	CMakeFiles/PathTracingRenderer.dir/src/core/Matrix4x4.cpp.o	da93fb03b00429e4
+144	1985	7802721945215948	CMakeFiles/PathTracingRenderer.dir/src/materials/Emissive.cpp.o	cd411d55c5e2f2ab
+169	1990	7802721945455937	CMakeFiles/PathTracingRenderer.dir/src/materials/Metal.cpp.o	ec3c5580ebc06e48
+192	2047	7802721945696101	CMakeFiles/PathTracingRenderer.dir/src/scene/Camera.cpp.o	47bb186e8e37f5ae
+86	1906	7802721944633989	CMakeFiles/PathTracingRenderer.dir/src/geometry/Plane.cpp.o	492d091b5d0baa35
+67	1900	7802721944453847	CMakeFiles/PathTracingRenderer.dir/src/geometry/Cylinder.cpp.o	bb4b91831cd16d7a
+132	2135	7802721945095886	CMakeFiles/PathTracingRenderer.dir/src/materials/Dielectric.cpp.o	60036e018acb3fbf
+180	2175	7802721945585964	CMakeFiles/PathTracingRenderer.dir/src/renderer/Renderer.cpp.o	b8d9b69b2dcf1979
+156	2095	7802721945335940	CMakeFiles/PathTracingRenderer.dir/src/materials/Lambertian.cpp.o	3ff566a243aef2db
+216	2222	7802721945941325	CMakeFiles/PathTracingRenderer.dir/src/utils/Image.cpp.o	24b6273947a50bb9
+204	2397	7802721945816108	CMakeFiles/PathTracingRenderer.dir/src/scene/Scene.cpp.o	b799158a2df74262
+75	2600	7802721944523851	CMakeFiles/PathTracingRenderer.dir/src/geometry/Mesh.cpp.o	642905875adf7608
+108	1995	7802721944855838	CMakeFiles/PathTracingRenderer.dir/src/geometry/Transform.cpp.o	59f46c3da50b1c3e
+37	1580	7802725704316601	CMakeFiles/PathTracingRenderer.dir/src/Main.cpp.o	96c569e5518dcbc3
+1581	9151	7802725719745775	PathTracingRenderer.html	a140c90130b0255d
+23	986	7802728291734561	build.ninja	89c3ee153fc25061
+23	986	7802728291734561	C:/Users/Aadik/Documents/C++ Projects/PathTracingRenderer/build_web/cmake_install.cmake	89c3ee153fc25061
+50	2222	7802728292615094	CMakeFiles/PathTracingRenderer.dir/src/core/Matrix4x4.cpp.o	91c2810f7acab874
+84	2277	7802728292935166	CMakeFiles/PathTracingRenderer.dir/src/geometry/Plane.cpp.o	51605d01d14cf5c8
+92	2335	7802728293015188	CMakeFiles/PathTracingRenderer.dir/src/geometry/Sphere.cpp.o	898383dca11e81ec
+101	2347	7802728293105201	CMakeFiles/PathTracingRenderer.dir/src/geometry/Transform.cpp.o	a7a2b3e92afb92e3
+134	2356	7802728293425341	CMakeFiles/PathTracingRenderer.dir/src/materials/Emissive.cpp.o	2574ec580bc3fe7a
+60	2361	7802728292685101	CMakeFiles/PathTracingRenderer.dir/src/geometry/Cube.cpp.o	5e45a5dad3adef4e
+68	2366	7802728292765133	CMakeFiles/PathTracingRenderer.dir/src/geometry/Cylinder.cpp.o	2c1d8f8367e13040
+180	2371	7802728293890629	CMakeFiles/PathTracingRenderer.dir/src/scene/Camera.cpp.o	4a4603a1b498dbaa
+111	2375	7802728293195213	CMakeFiles/PathTracingRenderer.dir/src/geometry/Triangle.cpp.o	69aeda844e0aecf4
+157	2382	7802728293660606	CMakeFiles/PathTracingRenderer.dir/src/materials/Metal.cpp.o	192320e8bb9873c
+122	2504	7802728293315312	CMakeFiles/PathTracingRenderer.dir/src/materials/Dielectric.cpp.o	581702775e868e0
+169	2603	7802728293780611	CMakeFiles/PathTracingRenderer.dir/src/renderer/Renderer.cpp.o	aeb56567777c4364
+146	2618	7802728293550575	CMakeFiles/PathTracingRenderer.dir/src/materials/Lambertian.cpp.o	e7ac8c538075870
+203	2678	7802728294120680	CMakeFiles/PathTracingRenderer.dir/src/utils/Image.cpp.o	976920a8a98ec8b4
+192	2900	7802728294010653	CMakeFiles/PathTracingRenderer.dir/src/scene/Scene.cpp.o	91cbf5ca4ee50796
+76	3051	7802728292845141	CMakeFiles/PathTracingRenderer.dir/src/geometry/Mesh.cpp.o	86d4d49f5460ac0a
+43	3325	7802728292515065	CMakeFiles/PathTracingRenderer.dir/src/Main.cpp.o	3a7171160978a4b9
+3325	11063	7802728325345185	PathTracingRenderer.html	49b774faff8ed1ae
