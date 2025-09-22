@@ -1,4 +1,6 @@
 #include "geometry/Transform.h"
+#include <cfloat>
+#include <algorithm>
 
 void Transform::UpdateMatrices() const {
     if (matricesDirty) {

@@ -17,11 +17,52 @@
 #include "core/Random.h"
 #include <iostream>
 #include <memory>
+#ifdef __EMSCRIPTEN__
+#include <SDL2/SDL.h>
+#else
 #include <SDL3/SDL.h>
+#endif
 #include <thread>
 #include <vector>
 #include <mutex>
 #include "utils/ThreadPool.h"
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#endif
+
+// Global variables for emscripten main loop
+Scene scene;
+Camera camera;
+Renderer renderer;
+Image* image = nullptr;
+std::vector<uint32_t> cpuFB;
+ThreadPool* threadPool = nullptr;
+std::vector<RenderTask> renderTasks;
+SDL_Window* sdlWindow = nullptr;
+SDL_Renderer* sdlRenderer = nullptr;
+SDL_Texture* sdlTexture = nullptr;
+std::vector<Vec3> accumulationBuffer;
+int accumulatedFrames = 0;
+bool cameraMoving = true;
+Vec3 lastCameraPosition;
+Vec3 lastCameraForward;
+int imageWidth;
+int imageHeight;
+int samplesPerPixel;
+int maxDepth;
+struct {
+    bool w_pressed = false;
+    bool s_pressed = false;
+    bool a_pressed = false;
+    bool d_pressed = false;
+    bool space_pressed = false;
+    bool shift_pressed = false;
+} keyState;
+Uint64 lastTime;
+float deltaTime = 0.0f;
+bool isRunning = true;
 
 void RenderRows(int startRow, int endRow, const int imageWidth, const int imageHeight, 
     const int samplesPerPixel, const int maxDepth, const Camera& camera, const Scene& scene, 
@@ -44,26 +85,222 @@ void RenderRows(int startRow, int endRow, const int imageWidth, const int imageH
             // Average the color and write to image
              pixelColor /= float(samplesPerPixel);
              image.SetPixel(i, j, pixelColor);
+             #ifdef __EMSCRIPTEN__
+             // For SDL2, use a simpler approach to pack RGB values
+             uint8_t r = static_cast<uint8_t>(std::min(pixelColor.x, 1.0f) * 255);
+             uint8_t g = static_cast<uint8_t>(std::min(pixelColor.y, 1.0f) * 255);
+             uint8_t b = static_cast<uint8_t>(std::min(pixelColor.z, 1.0f) * 255);
+             cpuFB[(imageHeight - j - 1) * imageWidth + i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+             #else
              cpuFB[(imageHeight - j - 1) * imageWidth + i] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
                  nullptr, static_cast<uint8_t>(std::min(pixelColor.x, 1.0f) * 255),
                  static_cast<uint8_t>(std::min(pixelColor.y, 1.0f) * 255),
                  static_cast<uint8_t>(std::min(pixelColor.z, 1.0f) * 255),
                  255);
+             #endif
         }
     }
 }
 
-int main() { 
-    // Image dimensions
-    const int imageWidth = 400;  // Keep small for faster rendering
-    const int imageHeight = 225;  // 16:9 aspect ratio
-    const int samplesPerPixel = 5;  // Anti-aliasing samples
-    const int maxDepth = 5;  // Maximum ray bounce depth
+// Function to be called each frame
+void main_loop() {
+    Uint64 currentTime = SDL_GetPerformanceCounter();
+    Uint64 frequency = SDL_GetPerformanceFrequency();
+    deltaTime = (float)(currentTime - lastTime) / (float)frequency;
+    lastTime = currentTime;
+    float fps = 1.0f / deltaTime;
     
-    // Create the output image
-    Image image(imageWidth, imageHeight);
+    #ifdef __EMSCRIPTEN__
+    // For web, just print to console
+    if ((int)(currentTime / frequency) % 60 == 0) { // Print every 60 frames
+        std::cout << "FPS: " << fps << std::endl;
+    }
+    #else
+    std::cout << "\rFPS: " << fps << "   \r" << std::flush;
+    #endif
+
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        #ifdef __EMSCRIPTEN__
+        if (event.type == SDL_QUIT) {
+        #else
+        if (event.type == SDL_EVENT_QUIT) {
+        #endif
+            #ifdef __EMSCRIPTEN__
+            isRunning = false;
+            emscripten_cancel_main_loop();
+            #endif
+            return;
+        #ifdef __EMSCRIPTEN__
+        } else if (event.type == SDL_KEYDOWN) {
+            switch (event.key.keysym.sym) {
+        #else
+        } else if (event.type == SDL_EVENT_KEY_DOWN) {
+            switch (event.key.key) {
+        #endif
+                case 'w':
+                    keyState.w_pressed = true;
+                    break;
+                case 's':
+                    keyState.s_pressed = true;
+                    break;
+                case 'a':
+                    keyState.a_pressed = true;
+                    break;
+                case 'd':
+                    keyState.d_pressed = true;
+                    break;
+                case SDLK_SPACE:
+                    keyState.space_pressed = true;
+                    break;
+                case SDLK_LSHIFT:
+                    keyState.shift_pressed = true;
+                    break;
+            }
+        #ifdef __EMSCRIPTEN__
+        } else if (event.type == SDL_KEYUP) {
+            switch (event.key.keysym.sym) {
+        #else
+        } else if (event.type == SDL_EVENT_KEY_UP) {
+            switch (event.key.key) {
+        #endif
+                case 'w':
+                    keyState.w_pressed = false;
+                    break;
+                case 's':
+                    keyState.s_pressed = false;
+                    break;
+                case 'a':
+                    keyState.a_pressed = false;
+                    break;
+                case 'd':
+                    keyState.d_pressed = false;
+                    break;
+                case SDLK_SPACE:
+                    keyState.space_pressed = false;
+                    break;
+                case SDLK_LSHIFT:
+                    keyState.shift_pressed = false;
+                    break;
+            }
+        #ifdef __EMSCRIPTEN__
+        } else if (event.type == SDL_MOUSEMOTION) {
+        #else
+        } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
+        #endif
+            camera.Yaw(-event.motion.xrel * 0.002f);
+            camera.Pitch(-event.motion.yrel * 0.002f);
+            camera.UpdateVectors();
+        }
+    }
     
-    // Create the scene with spheres
+    
+    if (keyState.w_pressed) camera.MoveForward(-0.5f * deltaTime);
+    if (keyState.s_pressed) camera.MoveForward(0.5f * deltaTime);
+    if (keyState.a_pressed) camera.MoveSideways(-0.5f * deltaTime);
+    if (keyState.d_pressed) camera.MoveSideways(0.5f * deltaTime);
+    if (keyState.space_pressed) camera.MoveUp(0.5f * deltaTime);
+    if (keyState.shift_pressed) camera.MoveUp(-0.5f * deltaTime);
+
+    bool currentlyMoving = keyState.w_pressed || keyState.s_pressed || keyState.a_pressed || keyState.d_pressed || keyState.space_pressed || keyState.shift_pressed || camera.GetForward() != lastCameraForward;
+
+    lastCameraForward = camera.GetForward();
+
+    if (!cameraMoving && currentlyMoving) {
+        std::fill(accumulationBuffer.begin(), accumulationBuffer.end(), Vec3(0,0,0));
+        accumulatedFrames = 0;
+    }
+    cameraMoving = currentlyMoving;
+    if (!cameraMoving) accumulatedFrames++;
+    
+    // Render the scene
+    auto renderLambda = [&](const RenderTask& task) {
+        for (int j = task.startRow; j > task.endRow; --j) 
+        {
+            for (int i = 0; i < imageWidth; ++i) 
+            {
+                Vec3 pixelColor(0, 0, 0);
+                for (int s = 0; s < samplesPerPixel; ++s) 
+                {
+                    float u = (i + RandomFloat()) / (imageWidth - 1);
+                    float v = (j + RandomFloat()) / (imageHeight - 1);
+                    Ray ray = camera.GetRay(u, v);
+                    pixelColor += renderer.TraceRay(ray, scene, maxDepth);
+                }
+
+                int pixelIndex = j * imageWidth + i;
+
+                // Average the color and write to image
+                 pixelColor /= float(samplesPerPixel);
+
+                 if (!cameraMoving) {
+                    accumulationBuffer[pixelIndex] += pixelColor;
+                 }
+
+                 Vec3 finalColor;
+                 if (accumulatedFrames > 0) {
+                    finalColor = accumulationBuffer[pixelIndex] / float(accumulatedFrames);
+                 } else {
+                    finalColor = pixelColor;
+                 }
+
+                 image->SetPixel(i, j, finalColor);
+                 #ifdef __EMSCRIPTEN__
+                 // For SDL2, use a simpler approach to pack RGB values
+                 uint8_t r = static_cast<uint8_t>(std::min(finalColor.x, 1.0f) * 255);
+                 uint8_t g = static_cast<uint8_t>(std::min(finalColor.y, 1.0f) * 255);
+                 uint8_t b = static_cast<uint8_t>(std::min(finalColor.z, 1.0f) * 255);
+                 cpuFB[(imageHeight - j - 1) * imageWidth + i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+                 #else
+                 cpuFB[(imageHeight - j - 1) * imageWidth + i] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
+                     nullptr, static_cast<uint8_t>(std::min(finalColor.x, 1.0f) * 255),
+                     static_cast<uint8_t>(std::min(finalColor.y, 1.0f) * 255),
+                     static_cast<uint8_t>(std::min(finalColor.z, 1.0f) * 255),
+                     255);
+                 #endif
+            }
+        }
+    };
+    
+    #ifdef __EMSCRIPTEN__
+    // Single-threaded rendering for web
+    for (const auto& task : renderTasks) {
+        renderLambda(task);
+    }
+    #else
+    threadPool->SubmitAndWait(renderTasks, renderLambda);
+    #endif
+    
+    SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+    SDL_RenderClear(sdlRenderer);
+    #ifdef __EMSCRIPTEN__
+    SDL_RenderCopy(sdlRenderer, sdlTexture, nullptr, nullptr);
+    #else
+    SDL_RenderTexture(sdlRenderer, sdlTexture, nullptr, nullptr);
+    #endif
+    SDL_RenderPresent(sdlRenderer);
+    
+    lastTime = currentTime;
+}
+
+int main() {
+    // Initialize constants
+    imageWidth = 400;
+    imageHeight = 225;
+    #ifdef __EMSCRIPTEN__
+    samplesPerPixel = 2; // Lower for web performance
+    maxDepth = 3;        // Lower for web performance
+    #else
+    samplesPerPixel = 4;
+    maxDepth = 4;
+    #endif
+    
+    // Initialize image and frame buffer
+    image = new Image(imageWidth, imageHeight);
+    cpuFB.resize(imageWidth * imageHeight);
+    
+    // Initialize scene with spheres
     Scene scene;
     
     auto groundMaterial = std::make_shared<Lambertian>(Vec3(0.8f, 0.8f, 0.0f));
@@ -109,6 +346,8 @@ int main() {
 
     auto customMeshMaterial = std::make_shared<Metal>(Vec3(0.5f, 0.5f, 0.9f));
     auto customMesh = std::make_shared<Mesh>(groundMaterial);
+    #ifndef __EMSCRIPTEN__
+    // Only load mesh on desktop for now
     if (customMesh->LoadFromOBJ("models/monkey.obj")) {
         auto transformedMesh = std::make_shared<Transform>(customMesh);
         transformedMesh->SetPosition(Vec3(0, -0.75, -2));
@@ -116,6 +355,7 @@ int main() {
         transformedMesh->SetScale(Vec3(0.5f, 0.5f, 0.5f));
         scene.Add(transformedMesh);
     }
+    #endif
 
     /*
     auto plane = std::make_shared<Plane>(Vec3(0, 0, 0), 1, 1, groundMaterial);
@@ -139,20 +379,63 @@ int main() {
     // Create renderer
     Renderer renderer;
 
-    SDL_Window* sdlWindow = SDL_CreateWindow("Path Tracing Renderer", 800, 450, SDL_WINDOW_RESIZABLE);
+    // Initialize SDL
+    #ifndef __EMSCRIPTEN__
+    // Only initialize SDL explicitly for native builds
+    // For Emscripten, SDL is automatically initialized with USE_SDL flag
+    if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
+        SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
+        return 1;
+    }
+    #endif
 
+    #ifdef __EMSCRIPTEN__
+    SDL_Window* sdlWindow = SDL_CreateWindow("Path Tracing Renderer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 450, SDL_WINDOW_SHOWN);
+    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, 0);
+    #else
+    SDL_Window* sdlWindow = SDL_CreateWindow("Path Tracing Renderer", 800, 450, SDL_WINDOW_RESIZABLE);
     SDL_Renderer* sdlRenderer = SDL_CreateRenderer(sdlWindow, nullptr);
+    #endif
+
+    if (!sdlWindow || !sdlRenderer) {
+        SDL_Log("Failed to create SDL window or renderer: %s", SDL_GetError());
+        #ifndef __EMSCRIPTEN__
+        SDL_Quit();
+        #endif
+        return 1;
+    }
 
     SDL_Texture* sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, imageWidth, imageHeight);
 
-    bool isRunning = true;
-
     std::vector<uint32_t> cpuFB(imageWidth * imageHeight);
 
+    // Initialize global variables for main_loop function BEFORE creating ThreadPool
+    ::sdlWindow = sdlWindow;
+    ::sdlRenderer = sdlRenderer;
+    ::sdlTexture = sdlTexture;
+    ::cpuFB = cpuFB;
+    
+    #ifdef __EMSCRIPTEN__
+    // Set up Emscripten main loop early to avoid timing issues
+    EM_ASM(
+        if (document.getElementById('status')) {
+            document.getElementById('status').textContent = 'Starting renderer...';
+        }
+    );
+    // Call emscripten_set_main_loop early but don't start rendering yet
+    // We'll set up the scene first
+    #endif
+
+    #ifdef __EMSCRIPTEN__
+    unsigned int numThread = 1; // Single-threaded for web (no threading support)
+    #else
     unsigned int numThread = std::max(1u, std::thread::hardware_concurrency() - 1);
+    #endif
     std::cout << "Using " << numThread << " threads for rendering." << std::endl;
 
+    #ifndef __EMSCRIPTEN__
     ThreadPool threadPool(numThread);
+    #endif
 
     int rowsPerThread = imageHeight / numThread;
     int remainingRows = imageHeight % numThread;
@@ -208,28 +491,38 @@ int main() {
                     finalColor = pixelColor;
                  }
 
-                 image.SetPixel(i, j, finalColor);
+                 image->SetPixel(i, j, finalColor);
+                 #ifdef __EMSCRIPTEN__
+                 // For SDL2, use a simpler approach to pack RGB values
+                 uint8_t r = static_cast<uint8_t>(std::min(finalColor.x, 1.0f) * 255);
+                 uint8_t g = static_cast<uint8_t>(std::min(finalColor.y, 1.0f) * 255);
+                 uint8_t b = static_cast<uint8_t>(std::min(finalColor.z, 1.0f) * 255);
+                 cpuFB[(imageHeight - j - 1) * imageWidth + i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+                 #else
                  cpuFB[(imageHeight - j - 1) * imageWidth + i] = SDL_MapRGBA(SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_ARGB8888),
                      nullptr, static_cast<uint8_t>(std::min(finalColor.x, 1.0f) * 255),
                      static_cast<uint8_t>(std::min(finalColor.y, 1.0f) * 255),
                      static_cast<uint8_t>(std::min(finalColor.z, 1.0f) * 255),
                      255);
+                 #endif
             }
         }
     };
 
+    #ifdef __EMSCRIPTEN__
+    // Single-threaded rendering for web
+    for (const auto& task : renderTasks) {
+        renderFunction(task);
+    }
+    #else
     threadPool.SubmitAndWait(renderTasks, renderFunction);
+    #endif
     
     // Save the rendered image
-    if (image.SavePPM("output.ppm")) {
+    if (image->SavePPM("output.ppm")) {
         std::cout << "Image saved to output.ppm" << std::endl;
     } else {
         std::cerr << "Failed to save image" << std::endl;
-    }
-    
-    if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
-        SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
-        return 0;
     }
     
     SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
@@ -246,7 +539,34 @@ int main() {
     Uint64 lastTime = SDL_GetPerformanceCounter();
     Uint64 frequency = SDL_GetPerformanceFrequency();
     float deltaTime = 0.0f;
+    
+    // Initialize global variables for main_loop function
+    ::lastTime = lastTime;
+    ::scene = scene;
+    ::camera = camera;
+    ::renderer = renderer;
+    ::accumulationBuffer = accumulationBuffer;
+    ::accumulatedFrames = accumulatedFrames;
+    ::cameraMoving = cameraMoving;
+    ::lastCameraForward = lastCameraForward;
+    ::sdlWindow = sdlWindow;
+    ::sdlRenderer = sdlRenderer;
+    ::sdlTexture = sdlTexture;
+    ::renderTasks = renderTasks;
+    #ifndef __EMSCRIPTEN__
+    ::threadPool = &threadPool;
+    #endif
 
+    #ifdef __EMSCRIPTEN__
+    // Set up Emscripten main loop
+    EM_ASM(
+        if (document.getElementById('status')) {
+            document.getElementById('status').textContent = 'Renderer started';
+        }
+    );
+    emscripten_set_main_loop(main_loop, 0, 1);
+    #else
+    // Regular desktop main loop
     while (isRunning) {
         Uint64 currentTime = SDL_GetPerformanceCounter();
         deltaTime = (float)(currentTime - lastTime) / (float)frequency;
@@ -256,20 +576,29 @@ int main() {
 
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
+            #ifdef __EMSCRIPTEN__
+            if (event.type == SDL_QUIT) {
+            #else
             if (event.type == SDL_EVENT_QUIT) {
+            #endif
                 isRunning = false;
+            #ifdef __EMSCRIPTEN__
+            } else if (event.type == SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
+            #else
             } else if (event.type == SDL_EVENT_KEY_DOWN) {
                 switch (event.key.key) {
-                    case SDLK_W:
+            #endif
+                    case 'w':
                         keyState.w_pressed = true;
                         break;
-                    case SDLK_S:
+                    case 's':
                         keyState.s_pressed = true;
                         break;
-                    case SDLK_A:
+                    case 'a':
                         keyState.a_pressed = true;
                         break;
-                    case SDLK_D:
+                    case 'd':
                         keyState.d_pressed = true;
                         break;
                     case SDLK_SPACE:
@@ -279,18 +608,23 @@ int main() {
                         keyState.shift_pressed = true;
                         break;
                 }
+            #ifdef __EMSCRIPTEN__
+            } else if (event.type == SDL_KEYUP) {
+                switch (event.key.keysym.sym) {
+            #else
             } else if (event.type == SDL_EVENT_KEY_UP) {
                 switch (event.key.key) {
-                    case SDLK_W:
+            #endif
+                    case 'w':
                         keyState.w_pressed = false;
                         break;
-                    case SDLK_S:
+                    case 's':
                         keyState.s_pressed = false;
                         break;
-                    case SDLK_A:
+                    case 'a':
                         keyState.a_pressed = false;
                         break;
-                    case SDLK_D:
+                    case 'd':
                         keyState.d_pressed = false;
                         break;
                     case SDLK_SPACE:
@@ -300,7 +634,11 @@ int main() {
                         keyState.shift_pressed = false;
                         break;
                 }
+            #ifdef __EMSCRIPTEN__
+            } else if (event.type == SDL_MOUSEMOTION) {
+            #else
             } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
+            #endif
                 camera.Yaw(-event.motion.xrel * 0.002f);
                 camera.Pitch(-event.motion.yrel * 0.002f);
                 camera.UpdateVectors();
@@ -325,18 +663,46 @@ int main() {
         }
         cameraMoving = currentlyMoving;
         if (!cameraMoving) accumulatedFrames++;
+        
+        #ifdef __EMSCRIPTEN__
+        // Single-threaded rendering for web
+        for (const auto& task : renderTasks) {
+            renderFunction(task);
+        }
+        #else
         threadPool.SubmitAndWait(renderTasks, renderFunction);
+        #endif
         SDL_UpdateTexture(sdlTexture, nullptr, cpuFB.data(), imageWidth * int(sizeof(uint32_t)));
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
         SDL_RenderClear(sdlRenderer);
+        #ifdef __EMSCRIPTEN__
+        SDL_RenderCopy(sdlRenderer, sdlTexture, nullptr, nullptr);
+        #else
         SDL_RenderTexture(sdlRenderer, sdlTexture, nullptr, nullptr);
+        #endif
         SDL_RenderPresent(sdlRenderer);
     }
     
+    // Desktop cleanup
     SDL_DestroyTexture(sdlTexture);
     SDL_DestroyRenderer(sdlRenderer);
     SDL_DestroyWindow(sdlWindow);
     SDL_Quit();
+    #endif
 
     return 0;
 }
+
+#ifdef __EMSCRIPTEN__
+// Export functions for JavaScript interop if needed
+extern "C" {
+    EMSCRIPTEN_KEEPALIVE
+    void set_quality(int samples, int depth) {
+        samplesPerPixel = samples;
+        maxDepth = depth;
+        // Reset accumulation when quality changes
+        std::fill(accumulationBuffer.begin(), accumulationBuffer.end(), Vec3(0,0,0));
+        accumulatedFrames = 0;
+    }
+}
+#endif
