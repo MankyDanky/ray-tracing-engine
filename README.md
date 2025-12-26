@@ -1,6 +1,6 @@
 # Realtime Ray Tracing Engine
 
-A C++ implementation of a realtime ray tracing engine. Uses a custom math library, supports custom meshes, transformations, and rudamentary web build support.
+A C++ implementation of a realtime ray tracing engine. Uses a custom math library, supports custom meshes, transformations, and rudimentary web build support.
 
 ## Gallery
 
