@@ -1,6 +1,6 @@
-# CPU Path Tracer
+# Realtime Ray Tracing Engine
 
-A simple C++ implementation of a CPU-based path tracer for realistic image rendering.
+A C++ implementation of a realtime ray tracing engine. Uses a custom math library, supports custom meshes, transformations, and rudamentary web build support.
 
 ## Gallery
 
